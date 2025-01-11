@@ -17,6 +17,8 @@
             
             data.Database.Migrate();
 
+            SeedTeams(data);
+
             return app;
         }
 
