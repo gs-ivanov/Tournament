@@ -9,7 +9,7 @@ namespace Tournament.Data.Migrations
     using System;
     using Tournament.Data;
 
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(TournamentDbContext))]
     [Migration("00000000000000_CreateIdentitySchema")]
     partial class CreateIdentitySchema
     {
