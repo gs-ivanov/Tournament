@@ -1,0 +1,81 @@
+﻿@model IEnumerable<Team>
+@using Microsoft.AspNetCore.Authorization
+@using Tournament.Data.Models
+
+@using static Tournament.WebConstants
+
+@inject IAuthorizationService AuthorizationService
+
+@if (ViewBag.TempDataType == "Success")
+{
+    <h5 class="text-black-10 text-center text-success"> @TempData[GlobalMessageKey]</h5>
+}
+else
+{
+    <h5 class="text-black-10 text-center text-danger"> @TempData[GlobalMessageKey]</h5>
+}
+
+
+<h2 class="text-black-50 text-lg-center">Списък на отборите</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Лого</th>
+            <th>Отбор</th>
+            <th>ИМ</th>
+            <th>П</th>
+            <th>Р</th>
+            <th>З</th>
+            <th>Голове</th>
+            <th>ГР</th>
+            <th>Т</th>
+            @if (User.IsInRole("Administrator"))
+            {
+                <th>Действия</th>
+
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var team in Model)
+        {
+            <tr>
+                <td><a asp-controller="Teams" asp-action="Details" asp-route-id="@team.Id" class="btn btn-link btn-link"><img class="d-block w-100" src=@team.Logo></a></td>
+                <td class="text-dark">@team.Name</td>
+                <td>@team.MatchNumbers</td>
+                <td>@team.Wins</td>
+                <td>@team.Draws</td>
+                <td>@team.Losts</td>
+                <td>@team.GoalsScored : @team.GoalsConceded</td>
+                <td>@team.GoalDifference</td>
+                <td>@team.Points</td>
+                @*<td>
+                        <a asp-controller="Teams" asp-action="Details" asp-route-id="@team.Id" class="btn btn-info btn-sm">Статистика</a>
+                    </td>*@
+
+                @if (User.IsInRole("Administrator"))
+                {
+                    <td>
+                        <a href="@Url.Action("Edit", "Teams", new { id = team.Id })" class="btn btn-primary">Редактиране</a>
+                    </td>
+                    @*<td>
+                            <a asp-action="Edit" asp-route-id="@team.Id">Редактиране</a> |
+                            <a asp-action="Delete" asp-route-id="@team.Id">Изтриване</a>
+                        </td>*@
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@*@if (User.IsInRole("Administrator"))
+    {
+        <a asp-action="Create" class="btn btn-primary">Добави отбор</a>
+    }*@
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<h6 class="font-weight-bold">ИМ - Изиграни мачове, П - Победи, Р - Равни, З - Загуби, ГР - Голова разлика, Т - Точки</h6>

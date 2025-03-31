@@ -1,0 +1,108 @@
+﻿Пример: Еднофазен елиминационен турнир (Single Elimination)
+
+В този формат отборите играят директни елиминации – загубилият отпада, а победителят продължава напред. Така се играят няколко кръга, докато остане само един победител.
+Примерен сценарий с 8 отбора
+
+    Четвъртфинали (8 отбора → 4 отбора)
+
+        A vs B
+
+        C vs D
+
+        E vs F
+
+        G vs H
+
+    Полуфинали (4 отбора → 2 отбора)
+
+        Победител от A/B vs Победител от C/D
+
+        Победител от E/F vs Победител от G/H
+
+    Финал (2 отбора → 1 шампион)
+
+        Победителите от полуфиналите играят за титлата
+
+Имплементация на елиминационен турнир
+
+Ако искаш да генерираш елиминационна схема в C#, можеш да използваш следния алгоритъм:
+Генериране на мачовете
+
+public List<Match> GenerateKnockoutMatches(List<Team> teams)
+{
+    if (teams.Count % 2 != 0)
+    {
+        throw new ArgumentException("Броят на отборите трябва да е степен на 2 (например 4, 8, 16)");
+    }
+
+    List<Match> matches = new List<Match>();
+    Random rand = new Random();
+
+    // Разбъркваме отборите за случайни двойки
+    teams = teams.OrderBy(t => rand.Next()).ToList();
+
+    for (int i = 0; i < teams.Count; i += 2)
+    {
+        matches.Add(new Match
+        {
+            HomeTeamId = teams[i].Id,
+            AwayTeamId = teams[i + 1].Id,
+            MatchDate = DateTime.Now.AddDays(i), // Примерна дата
+            HomeTeamGoals = null,
+            AwayTeamGoals = null
+        });
+    }
+
+    return matches;
+}
+
+Обяснение на кода
+
+    Проверяваме дали броят на отборите е степен на 2 (4, 8, 16...), защото иначе турнирът няма да може да завърши правилно.
+
+    Разбъркваме отборите, за да получим произволни двойки.
+
+    Групираме ги по двойки и създаваме първоначалните мачове.
+
+Други видове турнири
+
+    Двойна елиминация – отборите имат право на една загуба, но след втора загуба отпадат.
+
+    Групова фаза + елиминации – използва се на световни първенства (групи по 4 отбора, след това най-добрите продължават в елиминации).
+
+    Швейцарска система – подобно на "всеки срещу всеки", но отборите играят само срещу съперници със сходен брой точки.
+
+    public IActionResult GenerateEliminationBracket()
+{
+    var teams = _context.Teams.ToList();
+
+    if (teams.Count != 8)
+    {
+        return BadRequest("Турнирът трябва да има точно 8 отбора.");
+    }
+
+    // Разбъркване на отборите на случаен принцип
+    var random = new Random();
+    teams = teams.OrderBy(t => random.Next()).ToList();
+
+    // Създаване на мачовете за четвъртфиналите
+    List<Match> matches = new List<Match>();
+    for (int i = 0; i < teams.Count; i += 2)
+    {
+        matches.Add(new Match
+        {
+            HomeTeamId = teams[i].Id,
+            AwayTeamId = teams[i + 1].Id,
+            MatchDate = DateTime.Now.AddDays(7), // Първият кръг е след 7 дни
+            HomeTeamGoals = null,
+            AwayTeamGoals = null
+        });
+    }
+
+    _context.Matches.AddRange(matches);
+    _context.SaveChanges();
+
+    return RedirectToAction(nameof(Index));
+}
+
+

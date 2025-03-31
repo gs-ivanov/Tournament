@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Tournament</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-success border-bottom box-shadow mb-3">
+            <div class="container">
+                <img class="d-block w-10" src="/logos/chernomore.png" alt="Logo" asp-area="" asp-controller="Home" asp-action="Index">
+                @*<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Tournament</a>*@
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-area="" asp-controller="Matches" asp-action="Index">График на мачовете</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Класиране</a>
+                        </li>
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <div class="btn-group" role="group">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle bg-light text-danger" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Settings
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-white" asp-area="" asp-controller="">Настройки отбори...</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-info" asp-area="" asp-controller="Teams" asp-action="CreateMultiple">Създаване на нов списък с отбори (дефолтен). </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-danger" asp-area="" asp-controller="Teams" asp-action="Reset">Изтриване записите в списъка с отборите </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-white" asp-area="" asp-controller="">Настройки графици...</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-info" asp-area="" asp-controller="Matches" asp-action="GenerateSchedule">Създаване на нов турнир - Всеки с/у всеки </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-danger" asp-area="" asp-controller="Matches" asp-action="Reset">Нулиране на турнир - Всеки с/у всеки  </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-info" asp-area="" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на нов турнир - 'Елеменация' </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-info" asp-area="" asp-controller="Matches" asp-action="GenerateEliminationBracket">Създаване на нов елиминационният турнир(или „knockout“ формат). </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item bg-white" asp-area="" asp-controller="">-------------------------------------</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-black bg-info" asp-area="" asp-controller="Teams" asp-action="CreateMultiple">Genirate Teams</a>
+                            </li>
+</div>
+                         </div>
+                         }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Tournament - <a asp-area="" asp-controller="Home" asp-action="Index">List of teams</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

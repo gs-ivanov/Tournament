@@ -1,0 +1,44 @@
+﻿@model Tournament.Models.Teams.TeamDetailsViewModel
+
+@{
+    ViewData["Title"] = "Статистика на отбора";
+}
+
+<h1><a asp-controller="Teams" asp-action="Index" class="btn btn-info btn-link"><img class="d-block w-100" src=@Model.Logo></a>  @Model.Name - Статистика</h1>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Изиграни мачове</th>
+        <td>@Model.MatchNumbers</td>
+    </tr>
+    <tr>
+        <th>Победи</th>
+        <td>@Model.Wins</td>
+    </tr>
+    <tr>
+        <th>Равни</th>
+        <td>@Model.Draws</td>
+    </tr>
+    <tr>
+        <th>Загуби</th>
+        <td>@Model.Losts</td>
+    </tr>
+    <tr>
+        <th>Вкарани голове</th>
+        <td>@Model.GoalsScored</td>
+    </tr>
+    <tr>
+        <th>Получени голове</th>
+        <td>@Model.GoalsConceded</td>
+    </tr>
+    <tr>
+        <th>Голова разлика</th>
+        <td>@Model.GoalDifference</td>
+    </tr>
+    <tr>
+        <th>Точки</th>
+        <td>@Model.Points</td>
+    </tr>
+</table>
+
+<a asp-controller="Teams" asp-action="Index" class="btn btn-primary">Назад към всички отбори</a>

@@ -1,0 +1,100 @@
+﻿Генериране на срещите:
+
+Ако имаме 4 отбора:
+
+    Отбори: A, B, C, D
+
+    Всеки играе срещу всеки 2 пъти:
+
+        Първи кръг:
+
+            A vs B, C vs D
+
+            A vs C, B vs D
+
+            A vs D, B vs C
+
+        Втори кръг: (сменени домакини)
+
+            B vs A, D vs C
+
+            C vs A, D vs B
+
+            D vs A, C vs B
+
+Общо ще има 6 кръга по 2 мача, което означава 6 седмици.
+
+Имплементация в C#
+
+Можеш да използваш списъци и цикли за генериране на срещите:
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        List<string> teams = new List<string> { "A", "B", "C", "D" };
+        List<(string, string)> matches = new List<(string, string)>();
+
+        // Генериране на мачове
+        for (int i = 0; i < teams.Count; i++)
+        {
+            for (int j = i + 1; j < teams.Count; j++)
+            {
+                matches.Add((teams[i], teams[j])); // Домакин - Гост
+                matches.Add((teams[j], teams[i])); // Гост - Домакин
+            }
+        }
+
+        // Разпределяне на мачовете по седмици
+        int week = 1;
+        for (int i = 0; i < matches.Count; i += 2)
+        {
+            Console.WriteLine($"Седмица {week}:");
+            Console.WriteLine($"{matches[i].Item1} vs {matches[i].Item2}");
+            if (i + 1 < matches.Count)
+            {
+                Console.WriteLine($"{matches[i + 1].Item1} vs {matches[i + 1].Item2}");
+            }
+            Console.WriteLine();
+            week++;
+        }
+    }
+}
+
+Изход:
+
+Седмица 1:
+A vs B
+C vs D
+
+Седмица 2:
+A vs C
+B vs D
+
+Седмица 3:
+A vs D
+B vs C
+
+Седмица 4:
+B vs A
+D vs C
+
+Седмица 5:
+C vs A
+D vs B
+
+Седмица 6:
+D vs A
+C vs B
+
+Какво следва?
+
+    Да запазваш този график в базата данни.
+
+    Да добавиш дата за всеки мач (примерно всяка събота).
+
+    Да визуализираш графика в изглед.
+

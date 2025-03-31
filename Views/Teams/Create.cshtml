@@ -1,0 +1,28 @@
+﻿@model Team
+
+<h2>Добавяне на отбор</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" required value="Team " />
+    </div>
+    @*<div class="form-group">
+        <label asp-for="City"></label>
+        <input asp-for="City" class="form-control" value="City " />
+    </div>
+    <div class="form-group">
+        <label asp-for="Trener"></label>
+        <input asp-for="Trener" class="form-control" required value="Trener " />
+    </div>*@
+    @*<div class="form-group">
+            <label asp-for="PlayersCount"></label>
+            <input asp-for="PlayersCount" class="form-control" type="number" required />
+        </div>*@
+    @*<div class="form-group">
+            <label asp-for="Points"></label>
+            <input asp-for="Points" class="form-control" type="number" required />
+        </div>*@
+    <button type="submit" class="btn btn-success">Запази</button>
+    <a asp-action="Index" class="btn btn-secondary">Назад</a>
+</form>

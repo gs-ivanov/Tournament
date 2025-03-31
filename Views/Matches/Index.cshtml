@@ -1,0 +1,36 @@
+﻿@model IEnumerable<MatchViewModel>
+
+@using static Tournament.WebConstants
+
+<h2>График на мачовете</h2>
+
+<h5 class="text-black-10 text-center table-warning"> @TempData[GlobalMessageKey]</h5>
+
+<table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Домакин</th>
+            <th>Резултат</th>
+            <th>Гост</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var match in Model)
+        {
+            <tr>
+                <td>@match.MatchDate.ToShortDateString()</td>
+                <td>@match.HomeTeam</td>
+                <td>@match.HomeTeamGoals : @match.AwayTeamGoals</td>
+                <td>@match.AwayTeam</td>
+                <td>
+                    @if (User.IsInRole("Editor"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-warning btn-sm">Редактирай</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
