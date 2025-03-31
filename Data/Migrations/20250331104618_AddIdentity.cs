@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Tournament.Migrations
+namespace Tournament.Data.Migrations
 {
-    public partial class AllRemoveItems : Migration
+    public partial class AddIdentity : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -45,26 +45,6 @@ namespace Tournament.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Teams",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    City = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Trener = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Wins = table.Column<int>(type: "int", nullable: false),
-                    Losts = table.Column<int>(type: "int", nullable: false),
-                    Draws = table.Column<int>(type: "int", nullable: false),
-                    GoalsScored = table.Column<int>(type: "int", nullable: false),
-                    GoalsConceded = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Teams", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -173,35 +153,6 @@ namespace Tournament.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Matches",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    HomeTeamId = table.Column<int>(type: "int", nullable: false),
-                    AwayTeamId = table.Column<int>(type: "int", nullable: false),
-                    MatchDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    HomeTeamGoals = table.Column<int>(type: "int", nullable: false),
-                    AwayTeamGoals = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Matches", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Matches_Teams_AwayTeamId",
-                        column: x => x.AwayTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Matches_Teams_HomeTeamId",
-                        column: x => x.HomeTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -240,16 +191,6 @@ namespace Tournament.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_AwayTeamId",
-                table: "Matches",
-                column: "AwayTeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_HomeTeamId",
-                table: "Matches",
-                column: "HomeTeamId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -270,16 +211,10 @@ namespace Tournament.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Matches");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "Teams");
         }
     }
 }

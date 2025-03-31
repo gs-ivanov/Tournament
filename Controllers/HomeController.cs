@@ -8,13 +8,9 @@
     {
         public IActionResult Index()
         {
-
-            return RedirectToAction("index", "teams");
-        }
-
-        public IActionResult Privacy()
-        {
             return View();
+
+            //return RedirectToAction("index", "teams");
         }
 
         public IActionResult Error()
