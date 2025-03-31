@@ -14,27 +14,14 @@
         {
         }
 
-        //public DbSet<Team> Teams { get; init; }
-
-        //public DbSet<Match> Matches { get; init; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<Match> Matches { get; set; }
+        //public DbSet<Ranking> Rankings { get; set; }
+        public DbSet<Tournament> Tournaments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            //// Връзка между Team и Match (Домакин)
-            //builder
-            //    .Entity<Match>()
-            //    .HasOne(m => m.HomeTeam)
-            //    .WithMany()
-            //    .HasForeignKey(m => m.HomeTeamId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-
-            //// Връзка между Team и Match (Гост)
-            //builder
-            //    .Entity<Match>()
-            //    .HasOne(m => m.AwayTeam)
-            //    .WithMany()
-            //    .HasForeignKey(m => m.AwayTeamId)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Ranking>().HasNoKey();
 
             base.OnModelCreating(builder);
         }

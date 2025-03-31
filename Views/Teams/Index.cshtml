@@ -1,0 +1,48 @@
+﻿@model IEnumerable<TeamViewModel>
+
+@{
+    ViewData["Title"] = "Списък с отбори";
+}
+
+<h2 class="mt-3">Списък с отбори</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Добави нов отбор</a>
+</p>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Име</th>
+            <th>Треньор</th>
+            <th>Лого</th>
+            <th>Имейл</th>
+            <th>Такса платена</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var team in Model)
+        {
+            <tr>
+                <td>@team.Name</td>
+                <td>@team.CoachName</td>
+                <td>
+                    <img src="/logos/levski.png" alt="logo" width="50" />
+                </td>
+                <td>@team.ContactEmail</td>
+                <td>@(team.FeePaid ? "Да" : "Не")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">Редакция</a>
+                    <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-sm btn-info">Детайли</a>
+                    <a asp-action="Delete" asp-route-id="@team.Id" class="btn btn-sm btn-danger">Изтриване</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
