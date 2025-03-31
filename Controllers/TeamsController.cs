@@ -37,14 +37,24 @@
             return View(teams);
         }
 
-        // GET: Teams/Details/5
         [AllowAnonymous]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null) return NotFound();
+            var team = await _context.Teams
+                .Where(t => t.Id == id)
+                .Select(t => new TeamViewModel
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    CoachName = t.CoachName,
+                    LogoUrl = t.LogoUrl,
+                    ContactEmail = t.ContactEmail,
+                    FeePaid = t.FeePaid
+                })
+                .FirstOrDefaultAsync();
 
-            var team = await _context.Teams.FirstOrDefaultAsync(m => m.Id == id);
-            if (team == null) return NotFound();
+            if (team == null)
+                return NotFound();
 
             return View(team);
         }
@@ -126,13 +136,24 @@
         }
 
         // GET: Teams/Delete/5
-        [Authorize(Roles = "Администратор,Едитор")]
-        public async Task<IActionResult> Delete(int? id)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null) return NotFound();
+            var team = await _context.Teams
+                .Where(t => t.Id == id)
+                .Select(t => new TeamViewModel
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    CoachName = t.CoachName,
+                    LogoUrl = t.LogoUrl,
+                    ContactEmail = t.ContactEmail,
+                    FeePaid = t.FeePaid
+                })
+                .FirstOrDefaultAsync();
 
-            var team = await _context.Teams.FirstOrDefaultAsync(m => m.Id == id);
-            if (team == null) return NotFound();
+            if (team == null)
+                return NotFound();
 
             return View(team);
         }
@@ -140,12 +161,17 @@
         // POST: Teams/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Администратор,Едитор")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var team = await _context.Teams.FindAsync(id);
+            if (team == null)
+                return NotFound();
+
             _context.Teams.Remove(team);
             await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"Отборът \"{team.Name}\" беше изтрит.";
             return RedirectToAction(nameof(Index));
         }
 
