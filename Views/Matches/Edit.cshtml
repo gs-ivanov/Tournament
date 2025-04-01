@@ -1,12 +1,12 @@
 ﻿@model MatchFormModel
 
 @{
-    ViewData["Title"] = "Създай мач";
+    ViewData["Title"] = "Редактирай мач";
 }
 
-<h2 class="mt-3">Създай нов мач</h2>
+<h2 class="mt-3">Редакция на мач</h2>
 
-<form asp-action="Create" method="post" id="match-form">
+<form asp-action="Edit" method="post">
     <div class="form-group mb-3">
         <label asp-for="TeamAId" class="form-label"></label>
         <select asp-for="TeamAId" class="form-select" asp-items="Model.Teams" id="teamA">
@@ -45,7 +45,7 @@
         <span asp-validation-for="ScoreB" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success" id="create-btn">Създай</button>
+    <button type="submit" class="btn btn-success" id="create-btn">Запази</button>
     <a asp-action="Index" class="btn btn-secondary">Назад</a>
 </form>
 

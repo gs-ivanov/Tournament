@@ -1,14 +1,27 @@
 ﻿@model IEnumerable<MatchViewModel>
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 
 @{
     ViewData["Title"] = "Мачове";
+    var isAdmin = User.IsInRole("Administrator");
 }
 
 <h2 class="mt-3">Списък с мачове</h2>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
-</p>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (isAdmin)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
+    </p>
+}
 
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
@@ -17,6 +30,7 @@
             <th>Отбор B</th>
             <th>Дата</th>
             <th>Резултат</th>
+            <th>Действия</th>
         </tr>
     </thead>
     <tbody>
@@ -34,6 +48,15 @@
                     else
                     {
                         <span class="text-muted">Предстои</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@match.Id" class="btn btn-sm btn-info">Детайли</a>
+
+                    @if (isAdmin)
+                    {
+                        <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редакция</a>
+                        <a asp-action="Delete" asp-route-id="@match.Id" class="btn btn-sm btn-danger">Изтриване</a>
                     }
                 </td>
             </tr>

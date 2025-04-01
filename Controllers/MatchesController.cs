@@ -89,16 +89,162 @@
             {
                 TeamAId = model.TeamAId,
                 TeamBId = model.TeamBId,
-                MatchDate = model.MatchDate,
-                ScoreA = model.ScoreA,
-                ScoreB = model.ScoreB
+                MatchDate = model.MatchDate
             };
+
+            if (model.MatchDate <= DateTime.Now)
+            {
+                match.ScoreA = model.ScoreA;
+                match.ScoreB = model.ScoreB;
+            }
+            else
+            {
+                TempData["Message"] = "Мачът е в бъдещето – резултатът ще бъде маркиран като 'Предстои'.";
+            }
 
             _context.Matches.Add(match);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
+        {
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null) return NotFound();
+
+            var teams = await _context.Teams.ToDictionaryAsync(t => t.Id, t => t.Name);
+
+            var model = new MatchViewModel
+            {
+                Id = match.Id,
+                TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
+                TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
+                MatchDate = match.MatchDate,
+                ScoreA = match.ScoreA,
+                ScoreB = match.ScoreB
+            };
+
+            return View(model);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null) return NotFound();
+
+            var teams = await _context.Teams.ToDictionaryAsync(t => t.Id, t => t.Name);
+
+            var model = new MatchViewModel
+            {
+                Id = match.Id,
+                TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
+                TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
+                MatchDate = match.MatchDate,
+                ScoreA = match.ScoreA,
+                ScoreB = match.ScoreB
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null) return NotFound();
+
+            _context.Matches.Remove(match);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Мачът беше успешно изтрит.";
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null) return NotFound();
+
+            var model = new MatchFormModel
+            {
+                TeamAId = match.TeamAId,
+                TeamBId = match.TeamBId,
+                MatchDate = match.MatchDate,
+                ScoreA = match.ScoreA,
+                ScoreB = match.ScoreB,
+                Teams = await _context.Teams
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    }).ToListAsync()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Edit(int id, MatchFormModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.Teams = await _context.Teams
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    }).ToListAsync();
+                return View(model);
+            }
+
+            if (model.TeamAId == model.TeamBId)
+            {
+                ModelState.AddModelError("", "Отбор не може да играе срещу себе си.");
+                model.Teams = await _context.Teams
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    }).ToListAsync();
+                return View(model);
+            }
+
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null) return NotFound();
+
+            match.TeamAId = model.TeamAId;
+            match.TeamBId = model.TeamBId;
+            match.MatchDate = model.MatchDate;
+
+            if (model.MatchDate <= DateTime.Now)
+            {
+                match.ScoreA = model.ScoreA;
+                match.ScoreB = model.ScoreB;
+            }
+            else
+            {
+                match.ScoreA = null;
+                match.ScoreB = null;
+                TempData["Message"] = "Мачът е в бъдещето – резултатът ще бъде маркиран като 'Предстои'.";
+            }
+
+            _context.Matches.Update(match);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
     }
 
 }
