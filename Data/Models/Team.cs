@@ -8,5 +8,7 @@
         public string LogoUrl { get; set; }
         public string ContactEmail { get; set; }
         public bool FeePaid { get; set; }
+        public int? ManagerId { get; set; }
+        public Manager Manager { get; set; }
     }
 }

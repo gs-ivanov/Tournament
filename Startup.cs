@@ -11,6 +11,9 @@ namespace Tournament
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Tournament.Services.Ranking;
+    using Tournament.Services.MatchScheduler;
+    using Tournament.Services.MatchResultNotifire;
 
     public class Startup
     {
@@ -43,9 +46,12 @@ namespace Tournament
                 options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             });
 
-            //services.AddTransient<IStatisticsService, StatisticsService>();
-            //services.AddTransient<ITeamService, TeamService>();
-            //services.AddTransient<ITrenerService, TrenerService>();
+            services
+                .AddTransient<IRankingService, RankingService>();
+            services
+                .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
+            services
+                .AddTransient<IMatchResultNotifierService, MatchResultNotifierService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -73,6 +79,7 @@ namespace Tournament
                     endpoints.MapDefaultControllerRoute();
                     endpoints.MapRazorPages();
                 });
+            //MatchResultNotifierService
         }
     }
 }

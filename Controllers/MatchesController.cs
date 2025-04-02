@@ -1,25 +1,33 @@
 ﻿namespace Tournament.Controllers
 {
-    using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
-    using System.Threading.Tasks;
     using Tournament.Models.Matches;
-    using System.Linq;
-    using System;
+    using Tournament.Services.MatchResultNotifire;
+    using Tournament.Services.MatchScheduler;
 
     public class MatchesController : Controller
     {
         private readonly TurnirDbContext _context;
+        private readonly IMatchSchedulerService _matchScheduler;
+        private readonly IMatchResultNotifierService _notifier;
 
-        public MatchesController(TurnirDbContext context)
+        public MatchesController(
+            TurnirDbContext context,
+            IMatchSchedulerService matchScheduler,
+            IMatchResultNotifierService notifier)
         {
             _context = context;
+            _matchScheduler = matchScheduler;
+            _notifier = notifier;
         }
-
         // GET: Matches
         [AllowAnonymous]
         public async Task<IActionResult> Index()
@@ -207,20 +215,12 @@
                 return View(model);
             }
 
-            if (model.TeamAId == model.TeamBId)
-            {
-                ModelState.AddModelError("", "Отбор не може да играе срещу себе си.");
-                model.Teams = await _context.Teams
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.Id.ToString(),
-                        Text = t.Name
-                    }).ToListAsync();
-                return View(model);
-            }
-
             var match = await _context.Matches.FindAsync(id);
             if (match == null) return NotFound();
+
+            bool wasResultMissing = true;// !match.ScoreA.HasValue && !match.ScoreB.HasValue;
+            bool isNowFilled =  model.ScoreA.HasValue && model.ScoreB.HasValue;
+
 
             match.TeamAId = model.TeamAId;
             match.TeamBId = model.TeamBId;
@@ -241,9 +241,24 @@
             _context.Matches.Update(match);
             await _context.SaveChangesAsync();
 
+            if (wasResultMissing && isNowFilled)
+            {
+                await _notifier.NotifyAsync(match.Id);
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
+
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> GenerateMatches()
+        {
+            var startDate = DateTime.Today.AddDays(1);
+            int count = await _matchScheduler.GenerateScheduleAsync(startDate);
+
+            TempData["Message"] = $"Генерирани са {count} мача, започвайки от {startDate:dd.MM.yyyy}.";
+            return RedirectToAction("Index");
+        }
 
     }
 

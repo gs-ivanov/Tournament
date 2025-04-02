@@ -55,8 +55,12 @@
 
                     @if (isAdmin)
                     {
-                        <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редакция</a>
-                        <a asp-action="Delete" asp-route-id="@match.Id" class="btn btn-sm btn-danger">Изтриване</a>
+                        <p>  
+                            <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
+                            <a asp-action="GenerateMatches" class="btn btn-outline-success">Генерирай график</a>
+                            <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редакция</a>
+                            <a asp-action="Delete" asp-route-id="@match.Id" class="btn btn-sm btn-danger">Изтриване</a>
+                        </p>
                     }
                 </td>
             </tr>

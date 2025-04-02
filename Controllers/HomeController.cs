@@ -8,9 +8,9 @@
     {
         public IActionResult Index()
         {
-            return View();
+            //return View();
 
-            //return RedirectToAction("index", "teams");
+            return RedirectToAction("index", "teams");
         }
 
         public IActionResult Error()
