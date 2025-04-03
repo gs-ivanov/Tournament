@@ -19,6 +19,7 @@ else
                 <th>Тип турнир</th>
                 <th>Дата</th>
                 <th>Статус</th>
+                <th>Удостоверение</th>
             </tr>
         </thead>
         <tbody>
@@ -40,6 +41,17 @@ else
                         else
                         {
                             <span class="badge bg-danger">Отхвърлена</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.Status == RequestStatus.Approved && item.Team?.FeePaid == true)
+                        {
+                            <a class="btn btn-outline-primary btn-sm" asp-controller="Certificates" asp-action="ForTeam" asp-route-teamId="@item.Team.Id">Преглед</a>
+                            <a class="btn btn-outline-secondary btn-sm ms-1" asp-controller="Certificates" asp-action="Download" asp-route-teamId="@item.Team.Id">PDF</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">---</span>
                         }
                     </td>
                 </tr>
