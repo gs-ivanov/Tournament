@@ -21,5 +21,11 @@
 
         [Display(Name = "Такса платена")]
         public bool FeePaid { get; set; }
+
+        public string UserId { get; set; }
+
+        [Required]
+        [Display(Name = "Тип турнир")]
+        public TournamentType TournamentType { get; set; }
     }
 }

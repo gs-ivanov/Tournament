@@ -18,7 +18,6 @@
         public DateTime MatchDate { get; set; }
 
         public int? ScoreA { get; set; }
-
         public int? ScoreB { get; set; }
     }
 }

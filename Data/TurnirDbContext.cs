@@ -15,11 +15,18 @@
         public DbSet<Match> Matches { get; set; }
         public DbSet<Manager> Managers { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
+        public DbSet<ManagerRequest> ManagerRequests { get; set; }
         public DbSet<MatchSubscription> MatchSubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<Ranking>().HasNoKey();
+
+            builder.Entity<ManagerRequest>()
+                .HasOne(m => m.Team)
+                .WithMany()
+                .HasForeignKey(m => m.TeamId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(builder);
         }

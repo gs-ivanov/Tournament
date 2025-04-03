@@ -2,12 +2,10 @@
 {
     using global::Tournament.Models;
     using global::Tournament.Models.Teams;
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
-    using System.Threading.Tasks;
 
+    // Модел Manager
     public class Manager
     {
         public int Id { get; set; }
@@ -23,5 +21,4 @@
 
         public ICollection<TeamViewModel> Teams { get; set; } = new List<TeamViewModel>();
     }
-
 }

@@ -8,7 +8,9 @@
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
+    using Tournament.Models;
     using Tournament.Models.Teams;
+    using Tournament.Infrastructure.Extensions;
 
     public class TeamsController : Controller
     {
@@ -59,21 +61,55 @@
             return View(team);
         }
 
-        // GET: Teams/Create
-        [Authorize(Roles = "Administrator")]
+        ////// GET: Teams/Create
+        ////[Authorize(Roles = "Administrator")]
+        ////public IActionResult Create()
+        ////{
+        ////    return View(new CreateTeamViewModel());
+        ////}
+
+        ////// POST: Teams/Create
+        ////[HttpPost]
+        ////[ValidateAntiForgeryToken]
+        ////[Authorize(Roles = "Administrator")]
+        ////public async Task<IActionResult> Create(CreateTeamViewModel model)
+        ////{
+        ////    if (!ModelState.IsValid)
+        ////        return View(model);
+
+        ////    var team = new Team
+        ////    {
+        ////        Name = model.Name,
+        ////        CoachName = model.CoachName,
+        ////        LogoUrl = model.LogoUrl,
+        ////        ContactEmail = model.ContactEmail,
+        ////        FeePaid = model.FeePaid
+        ////    };
+
+        ////    _context.Teams.Add(team);
+        ////    await _context.SaveChangesAsync();
+
+        ////    TempData["Message"] = $"Отборът \"{team.Name}\" е създаден.";
+        ////    return RedirectToAction(nameof(Index));
+        ////}
+
+        [HttpGet]
         public IActionResult Create()
         {
-            return View(new CreateTeamViewModel());
+            var model = new CreateTeamViewModel();
+            return View(model);
         }
 
-        // POST: Teams/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Create(CreateTeamViewModel model)
         {
             if (!ModelState.IsValid)
+            {
                 return View(model);
+            }
+
+            var userId = User.Id();
 
             var team = new Team
             {
@@ -81,16 +117,28 @@
                 CoachName = model.CoachName,
                 LogoUrl = model.LogoUrl,
                 ContactEmail = model.ContactEmail,
-                FeePaid = model.FeePaid
+                FeePaid = false,
+                UserId = userId
             };
 
             _context.Teams.Add(team);
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = $"Отборът \"{team.Name}\" е създаден.";
-            return RedirectToAction(nameof(Index));
-        }
+            var request = new ManagerRequest
+            {
+                UserId =userId,
+                TeamId = team.Id,
+                TournamentType = model.TournamentType,
+                JsonPayload = ManagerRequest.GenerateJson(team, model.TournamentType),
+                Status = RequestStatus.Pending
+            };
 
+            _context.ManagerRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Отборът е добавен и заявката за участие е подадена.";
+            return RedirectToAction("Index", "Home");
+        }
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id)
