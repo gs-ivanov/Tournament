@@ -48,43 +48,43 @@
 
         }
 
-        // Corected code Email to Gmail
-        private async Task SendEmailAsync(string toEmail, string subject, string body)
-        {
-            var message = new MailMessage();
-            message.To.Add(toEmail);
-            message.Subject = subject;
-            message.Body = body;
-            message.From = new MailAddress("yourgmail@gmail.com");
+        //// Corected code Email to Gmail
+        //private async Task SendEmailAsync(string toEmail, string subject, string body)
+        //{
+        //    var message = new MailMessage();
+        //    message.To.Add(toEmail);
+        //    message.Subject = subject;
+        //    message.Body = body;
+        //    message.From = new MailAddress("yourgmail@gmail.com");
 
-            using var smtp = new SmtpClient("smtp.gmail.com", 587)
-            {
-                Credentials = new NetworkCredential("yourgmail@gmail.com", "ВАШИЯТ_16_ЦИФРЕН_APP_PASSWORD"),
-                EnableSsl = true
-            };
+        //    using var smtp = new SmtpClient("smtp.gmail.com", 587)
+        //    {
+        //        Credentials = new NetworkCredential("yourgmail@gmail.com", "ВАШИЯТ_16_ЦИФРЕН_APP_PASSWORD"),
+        //        EnableSsl = true
+        //    };
 
-            await smtp.SendMailAsync(message);
-        }
+        //    await smtp.SendMailAsync(message);
+        //}
 
 
-        //Email to Gmail
+        ////Email to Gmail
 
-        private async Task SendGmailAsync(string toEmail, string subject, string body)
-        {
-            var message = new MailMessage();
-            message.To.Add(toEmail);
-            message.Subject = subject;
-            message.Body = body;
-            message.From = new MailAddress("yourgmail@gmail.com");
+        //private async Task SendGmailAsync(string toEmail, string subject, string body)
+        //{
+        //    var message = new MailMessage();
+        //    message.To.Add(toEmail);
+        //    message.Subject = subject;
+        //    message.Body = body;
+        //    message.From = new MailAddress("yourgmail@gmail.com");
 
-            using var smtp = new SmtpClient("smtp.gmail.com", 587)
-            {
-                //Credentials = new NetworkCredential("gs.ivanov50@gmail.com", ""),
-                //EnableSsl = true
-            };
+        //    using var smtp = new SmtpClient("smtp.gmail.com", 587)
+        //    {
+        //        //Credentials = new NetworkCredential("gs.ivanov50@gmail.com", ""),
+        //        //EnableSsl = true
+        //    };
 
-            await smtp.SendMailAsync(message);
-        }
+        //    await smtp.SendMailAsync(message);
+        //}
 
         //Email to Mailtrap
         //private async Task SendEmailAsync(string toEmail, string subject, string body)
