@@ -8,15 +8,18 @@
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Models;
+    using Tournament.Services.Email;
 
     [Authorize(Roles = "Administrator")]
     public class ManagerRequestsController : Controller
     {
         private readonly TurnirDbContext _context;
+        private readonly IEmailSender _emailSender;
 
-        public ManagerRequestsController(TurnirDbContext context)
+        public ManagerRequestsController(TurnirDbContext context, IEmailSender emailSender)
         {
             _context = context;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -52,6 +55,13 @@
             request.Team.FeePaid = true;
 
             await _context.SaveChangesAsync();
+
+            // Изпращане на имейл известие
+            var link = Url.Action("Download", "Certificates", new { teamId = request.TeamId }, Request.Scheme);
+            var subject = "Удостоверение за участие в турнир";
+            var body = $"Уважаеми {request.User.FullName},\n\nВашата заявка за участие с отбор \"{request.Team.Name}\" беше одобрена.\n\nМожете да изтеглите удостоверението си от следния линк:\n{link}\n\nПоздрави,\nЕкипът на Tournament";
+
+            await _emailSender.SendAsync(request.User.Email, subject, body); // ✅ правилен ред            //await _emailSender.SendAsync(user.Email, subject, body);
 
             TempData["Message"] = $"✅ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше одобрена.";
             return RedirectToAction(nameof(Index));

@@ -14,6 +14,8 @@ namespace Tournament
     using Tournament.Services.Ranking;
     using Tournament.Services.MatchScheduler;
     using Tournament.Services.MatchResultNotifire;
+    using Tournament.Services.Email;
+    using System.IO;
 
     public class Startup
     {
@@ -22,8 +24,11 @@ namespace Tournament
 
         public IConfiguration Configuration { get; }
 
+
+
         public void ConfigureServices(IServiceCollection services)
         {
+
             services
                 .AddDbContext<TurnirDbContext>(options => options
                 .UseSqlServer(this.Configuration.GetConnectionString("DefaultConnection")));
@@ -52,6 +57,8 @@ namespace Tournament
                 .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
             services
                 .AddTransient<IMatchResultNotifierService, MatchResultNotifierService>();
+            services
+                .AddTransient<IEmailSender, EmailSender>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -79,7 +86,6 @@ namespace Tournament
                     endpoints.MapDefaultControllerRoute();
                     endpoints.MapRazorPages();
                 });
-            //MatchResultNotifierService
         }
     }
 }
