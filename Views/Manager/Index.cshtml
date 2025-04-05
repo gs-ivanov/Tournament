@@ -1,0 +1,35 @@
+﻿@model MenagerDashboardViewModel
+
+<h2 class="mb-4">Менажерски панел</h2>
+
+@if (Model.Team == null)
+{
+    <div class="alert alert-warning">
+        Нямате регистриран отбор.
+    </div>
+    <a class="btn btn-success" asp-controller="Teams" asp-action="Create">Създай отбор</a>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Отбор: @Model.Team.Name</h5>
+            <p class="card-text">Треньор: @Model.Team.CoachName</p>
+            <p class="card-text">Имейл за контакт: @Model.Team.ContactEmail</p>
+        </div>
+    </div>
+}
+
+@if (Model.Request != null)
+{
+    <div class="alert alert-info">
+        <strong>Статус на заявката:</strong> @Model.Request.Status
+    </div>
+
+    @if (Model.Request.Status == RequestStatus.Approved)
+    {
+        <a class="btn btn-outline-primary" asp-controller="Certificates" asp-action="Download" asp-route-teamId="@Model.Team.Id">
+            📥 Изтегли удостоверение
+        </a>
+    }
+}

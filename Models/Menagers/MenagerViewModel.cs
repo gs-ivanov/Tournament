@@ -5,7 +5,7 @@
     using Tournament.Models.Teams;
 
     // ViewModel за мениджър на турнир
-    public class ManagerViewModel
+    public class MenagerViewModel
     {
         public int Id { get; set; }
 

@@ -29,8 +29,14 @@ using System.Threading.Tasks;
 
         public string ReturnUrl { get; set; }
 
+        [BindProperty(SupportsGet = true)]
+        public string Role { get; set; }
+
+
+
         public class InputModel
         {
+
             [Required]
             [EmailAddress]
             public string Email { get; set; }
@@ -69,17 +75,19 @@ using System.Threading.Tasks;
                 };
 
                 var result = await this.userManager.CreateAsync(user, Input.Password);
-        
-                var roleFromQuery = Request.Query["role"].ToString();
-       
+
                 if (result.Succeeded)
                 {
-                    if (roleFromQuery == "Manager")
+                    //var roleFromQuery = Request.Query["role"].ToString();
+
+                    if (Role == "Manager")
                     {
-                        await userManager.AddToRoleAsync(user, "Editor");
+                        await userManager.AddToRoleAsync(user, "Editor");  // добавяне в роля „Менажер“
+                        user.IsManager = true;                              // задаване на флага
+                        await userManager.UpdateAsync(user);               // задължително – запазва промените
                     }
 
-                    await this.signInManager.SignInAsync(user, isPersistent: false);
+                    await signInManager.SignInAsync(user, isPersistent: false);
                     return LocalRedirect(returnUrl);
                 }
 
