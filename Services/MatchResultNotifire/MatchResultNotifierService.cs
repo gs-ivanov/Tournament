@@ -110,5 +110,21 @@
 
         //}
 
+        public async Task SendSmsAsync(string toPhone, string body)
+        {
+            const string accountSid = "ACed45f427b2150239e5694f353a2dfccf";
+            const string authToken = "3e1c6bdbb3e8ac9468a17dd1354881f0";
+
+            TwilioClient.Init(accountSid, authToken);
+
+            var message = await MessageResource.CreateAsync(
+                to: new PhoneNumber("+359885773102"),         // +359..., +1..., и т.н.
+                from: new PhoneNumber("+19519440626"),
+                body: body
+            );
+
+            Console.WriteLine($"SMS изпратен с SID: {message.Sid}");
+        }
+
     }
 }

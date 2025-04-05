@@ -61,7 +61,7 @@
             var subject = "Удостоверение за участие в турнир";
             var body = $"Уважаеми {request.User.FullName},\n\nВашата заявка за участие с отбор \"{request.Team.Name}\" беше одобрена.\n\nМожете да изтеглите удостоверението си от следния линк:\n{link}\n\nПоздрави,\nЕкипът на Tournament";
 
-            await _emailSender.SendAsync(request.User.Email, subject, body); // ✅ правилен ред            //await _emailSender.SendAsync(user.Email, subject, body);
+            await _emailSender.SendAsync(request.User.Email, subject, body); // ✅ правилен ред 
 
             TempData["Message"] = $"✅ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше одобрена.";
             return RedirectToAction(nameof(Index));
