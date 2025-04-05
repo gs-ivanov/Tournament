@@ -16,6 +16,7 @@ namespace Tournament
     using Tournament.Services.MatchResultNotifire;
     using Tournament.Services.Email;
     using System.IO;
+    using Tournament.Services.Sms;
 
     public class Startup
     {
@@ -59,6 +60,8 @@ namespace Tournament
                 .AddTransient<IMatchResultNotifierService, MatchResultNotifierService>();
             services
                 .AddTransient<IEmailSender, EmailSender>();
+            services
+                .AddTransient<ISmsSender, TwilioSmsSender>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -9,11 +9,8 @@
     {
         var user = await UserManager.GetUserAsync(User);
         <li class="nav-item">
-            @{
-                var display = User.DisplayRole() == "Гост" ? user.FullName : User.DisplayRole();
-            }
             <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Manage/Index">
-                👋 Здравей, @display
+                👋 Здравей, @User.DisplayRole()
             </a>
         </li>
         <li class="nav-item">
@@ -31,10 +28,7 @@
             <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Register">Регистрация</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login">Admin</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login2">Manager</a>
+            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login">Login</a>
         </li>
     }
 </ul>

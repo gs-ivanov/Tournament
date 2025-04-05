@@ -21,12 +21,16 @@
                         <li class="nav-item">
                             <a class="nav-link text-warning" asp-controller="TestEmail" asp-action="Send">📧 Тест Email</a>
                             <a class="nav-link text-warning" asp-controller="TestEmail" asp-action="Test">📧 Тест Dropdown list</a>
+                            <a class="nav-link text-warning" asp-controller="TestSms" asp-action="Send">📲 Тест SMS</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-area="" asp-controller="Matches" asp-action="Index">График на мачовете</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-area="" asp-controller="Teams" asp-action="Index">Списък с отборите</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Register" asp-route-role="Manager">👤 Стани менажер</a>                            </a>
                         </li>
                         @if (User.IsInRole("Administrator"))
                         {

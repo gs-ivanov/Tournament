@@ -69,9 +69,16 @@ using System.Threading.Tasks;
                 };
 
                 var result = await this.userManager.CreateAsync(user, Input.Password);
-
+        
+                var roleFromQuery = Request.Query["role"].ToString();
+       
                 if (result.Succeeded)
                 {
+                    if (roleFromQuery == "Manager")
+                    {
+                        await userManager.AddToRoleAsync(user, "Editor");
+                    }
+
                     await this.signInManager.SignInAsync(user, isPersistent: false);
                     return LocalRedirect(returnUrl);
                 }
