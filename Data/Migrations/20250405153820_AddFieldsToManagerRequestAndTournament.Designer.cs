@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tournament.Data;
 
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TurnirDbContext))]
-    partial class TurnirDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250405153820_AddFieldsToManagerRequestAndTournament")]
+    partial class AddFieldsToManagerRequestAndTournament
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -319,11 +321,16 @@ namespace Tournament.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("TournamentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TournamentId");
 
                     b.HasIndex("UserId");
 
@@ -346,38 +353,12 @@ namespace Tournament.Data.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Tournaments");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            IsOpenForApplications = true,
-                            Name = "Пролетен турнир",
-                            StartDate = new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Елиминации"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            IsOpenForApplications = true,
-                            Name = "Летен шампионат",
-                            StartDate = new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Групова фаза"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            IsOpenForApplications = false,
-                            Name = "Зимна купа",
-                            StartDate = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Елиминации"
-                        });
                 });
 
             modelBuilder.Entity("Tournament.Data.Models.User", b =>
@@ -592,6 +573,10 @@ namespace Tournament.Data.Migrations
 
             modelBuilder.Entity("Tournament.Data.Models.Team", b =>
                 {
+                    b.HasOne("Tournament.Data.Models.Tournament", null)
+                        .WithMany("Teams")
+                        .HasForeignKey("TournamentId");
+
                     b.HasOne("Tournament.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -609,6 +594,11 @@ namespace Tournament.Data.Migrations
                 });
 
             modelBuilder.Entity("Tournament.Data.Models.Manager", b =>
+                {
+                    b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("Tournament.Data.Models.Tournament", b =>
                 {
                     b.Navigation("Teams");
                 });

@@ -8,8 +8,8 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public TournamentType Type { get; set; }
+        public string Type { get; set; }
         public DateTime StartDate { get; set; }
-        public List<Team> Teams { get; set; } = new();
+        public bool IsOpenForApplications { get; set; }
     }
 }

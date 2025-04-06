@@ -5,6 +5,7 @@
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Models;
@@ -85,6 +86,18 @@
 
             TempData["Message"] = $"❌ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше отхвърлена.";
             return RedirectToAction(nameof(Index));
+        }
+
+        public static string GenerateJson(string email, TournamentType tournamentType)
+        {
+            var payload = new
+            {
+                Email = email,
+                TournamentType = tournamentType.ToString(),
+                RequestedAt = DateTime.UtcNow
+            };
+
+            return JsonSerializer.Serialize(payload);
         }
     }
 }

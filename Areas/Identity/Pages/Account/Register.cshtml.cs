@@ -1,27 +1,30 @@
 ﻿namespace Tournament.Areas.Identity.Pages.Account
 {
-using Tournament.Data.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
-
-    using static Data.DataConstants.User;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.RazorPages;
+    using System.ComponentModel.DataAnnotations;
+    using System.Threading.Tasks;
+    using Tournament.Data;
+    using Tournament.Data.Models;
+    using Tournament.Models;
 
     [AllowAnonymous]
     public class RegisterModel : PageModel
     {
+        private readonly TurnirDbContext context;
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
         public RegisterModel(
             UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            TurnirDbContext context)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.context = context;
         }
 
         [BindProperty]
@@ -32,29 +35,35 @@ using System.Threading.Tasks;
         [BindProperty(SupportsGet = true)]
         public string Role { get; set; }
 
-
-
         public class InputModel
         {
-
             [Required]
             [EmailAddress]
+            [Display(Name = "Имейл")]
             public string Email { get; set; }
 
-            [Display(Name = "Full Name")]
-            [StringLength(FullNameMaxLength, MinimumLength = FullNameMinLength)]
-            public string FullName { get; set; }
-
             [Required]
-            [StringLength(PasswordMaxLength, MinimumLength = PasswordMinLength)]
+            [StringLength(100, ErrorMessage = "Паролата трябва да е поне {2} символа.", MinimumLength = 6)]
             [DataType(DataType.Password)]
+            [Display(Name = "Парола")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm Password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Потвърди паролата")]
+            [Compare("Password", ErrorMessage = "Паролите не съвпадат.")]
             public string ConfirmPassword { get; set; }
+
+            [Display(Name = "Стани мениджър")]
+            public bool BecomeManager { get; set; }
+
+            [Display(Name = "Тип турнир")]
+            public TournamentType? TournamentType { get; set; }
+
+            [Required]
+            [Display(Name = "Име и фамилия")]
+            public string FullName { get; set; }
         }
+
 
         public void OnGet(string returnUrl = null)
         {
@@ -78,6 +87,27 @@ using System.Threading.Tasks;
 
                 if (result.Succeeded)
                 {
+                    if (Input.BecomeManager)
+                    {
+                        // Добавяме в роля Editor
+                        await userManager.AddToRoleAsync(user, "Editor");
+
+                        // Създаваме заявка
+                        var request = new ManagerRequest
+                        {
+                            UserId = user.Id,
+                            TournamentType = Input.TournamentType.Value,
+                            JsonPayload = ManagerRequest.GenerateJson(user.Email, Input.TournamentType.Value),
+                            Status = RequestStatus.Pending
+                        };
+
+                        context.ManagerRequests.Add(request);
+                        await context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await userManager.AddToRoleAsync(user, "Fan");
+                    }
                     //var roleFromQuery = Request.Query["role"].ToString();
 
                     if (Role == "Manager")

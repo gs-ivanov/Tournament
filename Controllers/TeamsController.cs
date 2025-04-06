@@ -93,14 +93,22 @@
         ////    return RedirectToAction(nameof(Index));
         ////}
 
-        [HttpGet]
+
+        [Authorize(Roles = "Editor")]
         public IActionResult Create()
         {
-            var model = new CreateTeamViewModel();
-            return View(model);
+            return View();
         }
 
+        //[HttpGet]
+        //public IActionResult Create()
+        //{
+        //    var model = new CreateTeamViewModel();
+        //    return View(model);
+        //}
+
         [HttpPost]
+        [Authorize(Roles = "Editor")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTeamViewModel model)
         {

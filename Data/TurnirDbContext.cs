@@ -2,6 +2,7 @@
 {
     using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
+    using System;
     using Tournament.Data.Models;
 
     public class TurnirDbContext : IdentityDbContext<User>
@@ -27,6 +28,34 @@
                 .WithMany()
                 .HasForeignKey(m => m.TeamId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Tournament>().HasData(
+               new Tournament
+               {
+                   Id = 1,
+                   Name = "Пролетен турнир",
+                   Type = "Елиминации",
+                   StartDate = new DateTime(2025, 5, 10),
+                   IsOpenForApplications = true
+               },
+               new Tournament
+               {
+                   Id = 2,
+                   Name = "Летен шампионат",
+                   Type = "Групова фаза",
+                   StartDate = new DateTime(2025, 7, 1),
+                   IsOpenForApplications = true
+               },
+               new Tournament
+               {
+                   Id = 3,
+                   Name = "Зимна купа",
+                   Type = "Елиминации",
+                   StartDate = new DateTime(2025, 12, 5),
+                   IsOpenForApplications = false
+               }
+           );
+
 
             base.OnModelCreating(builder);
         }

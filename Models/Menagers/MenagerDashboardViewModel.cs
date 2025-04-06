@@ -8,3 +8,4 @@
         public ManagerRequest Request { get; set; }
     }
 }
+

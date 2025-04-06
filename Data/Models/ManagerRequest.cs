@@ -3,6 +3,7 @@
     using global::Tournament.Models;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Text.Json;
 
     public class ManagerRequest
     {
@@ -21,18 +22,38 @@
         public RequestStatus Status { get; set; } = RequestStatus.Pending;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
-        public static string GenerateJson(Team team, TournamentType type)
+        public int TournamentId { get; set; }
+        public Tournament Tournament { get; set; }
+
+        public bool IsApproved { get; set; } = false;
+        public bool FeePaid { get; set; } = false;
+
+        // ✅ За регистрация (email)
+        public static string GenerateJson(string email, TournamentType tournamentType)
         {
-            return System.Text.Json.JsonSerializer.Serialize(new
+            var payload = new
             {
-                team.Id,
-                team.Name,
-                team.CoachName,
-                team.LogoUrl,
-                team.ContactEmail,
-                TournamentType = type.ToString(),
-                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm")
-            });
+                Email = email,
+                TournamentType = tournamentType.ToString(),
+                RequestedAt = DateTime.UtcNow
+            };
+
+            return JsonSerializer.Serialize(payload);
+        }
+
+        // ✅ За създаване на отбор
+        public static string GenerateJson(Team team, TournamentType tournamentType)
+        {
+            var payload = new
+            {
+                TeamName = team.Name,
+                Coach = team.CoachName,
+                ContactEmail = team.ContactEmail,
+                TournamentType = tournamentType.ToString(),
+                SubmittedAt = DateTime.UtcNow
+            };
+
+            return JsonSerializer.Serialize(payload);
         }
     }
 }
