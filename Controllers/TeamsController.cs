@@ -11,19 +11,14 @@
     using Tournament.Models;
     using Tournament.Models.Teams;
     using Tournament.Infrastructure.Extensions;
-    using System;
-    using Tournament.Services.PDF;
 
     public class TeamsController : Controller
     {
         private readonly TurnirDbContext _context;
-        private readonly PdfService pdfService;
 
-        public TeamsController(TurnirDbContext context,
-            PdfService pdfService)
+        public TeamsController(TurnirDbContext context)
         {
             _context = context;
-            this.pdfService = pdfService;
         }
 
         [AllowAnonymous]
@@ -44,23 +39,50 @@
             return View(teams);
         }
 
-        [Authorize(Roles = "Editor")]
-        [HttpGet]
-        public  IActionResult Create()
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int id)
         {
-            if (TempData["CodeValidated"]?.ToString() != "true")
+            var team = await _context.Teams
+                .Where(t => t.Id == id)
+                .Select(t => new TeamViewModel
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    CoachName = t.CoachName,
+                    LogoUrl = t.LogoUrl,
+                    ContactEmail = t.ContactEmail,
+                    FeePaid = t.FeePaid
+                })
+                .FirstOrDefaultAsync();
+
+            if (team == null)
+                return NotFound();
+
+            return View(team);
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Editor"))
             {
-                return  RedirectToAction("EnterCode");
+                TempData["Error"] = "Само регистрирани мениджъри могат да добавят отбори.";
+                return RedirectToAction("Index");
             }
 
             return View();
         }
 
         [HttpPost]
-        [Authorize(Roles = "Editor")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTeamViewModel model)
         {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Editor"))
+            {
+                TempData["Error"] = "Нямате права да добавяте отбори.";
+                return RedirectToAction("Index");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -79,12 +101,11 @@
             };
 
             _context.Teams.Add(team);
-
             await _context.SaveChangesAsync();
 
             var request = new ManagerRequest
             {
-                UserId = userId,
+                UserId =userId,
                 TeamId = team.Id,
                 TournamentType = model.TournamentType,
                 JsonPayload = ManagerRequest.GenerateJson(team, model.TournamentType),
@@ -94,114 +115,9 @@
             _context.ManagerRequests.Add(request);
             await _context.SaveChangesAsync();
 
-            // Генериране на HTML за PDF сертификат
-            var certificateId = Guid.NewGuid().ToString().Substring(0, 8); // кратък уникален код
-
-            var html = $@"
-<html>
-<head>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 40px;
-            background-color: #ffffff;
-        }}
-
-        .certificate {{
-            border: 5px double #333;
-            padding: 40px;
-            background-color: #fdfdfd;
-            text-align: center;
-        }}
-
-        .logo {{
-            margin-bottom: 20px;
-        }}
-
-        h1 {{
-            font-size: 30px;
-            margin-bottom: 20px;
-            color: #1a1a1a;
-        }}
-
-        .info {{
-            font-size: 18px;
-            text-align: left;
-            margin-top: 30px;
-        }}
-
-        .info p {{
-            margin: 6px 0;
-        }}
-
-        .footer {{
-            margin-top: 50px;
-            display: flex;
-            justify-content: space-between;
-        }}
-
-        .signature {{
-            text-align: center;
-        }}
-
-        .stamp {{
-            text-align: center;
-        }}
-
-        .serial {{
-            font-size: 14px;
-            color: #777;
-            margin-top: 30px;
-        }}
-    </style>
-</head>
-<body>
-    <div class='certificate'>
-        <div class='logo'>
-            <img src='https://yourdomain.com/images/logo.png' width='120' alt='Logo' />
-        </div>
-
-        <h1>СЕРТИФИКАТ ЗА УЧАСТИЕ</h1>
-        <p>С този сертификат потвърждаваме, че отборът <strong>{team.Name}</strong></p>
-        <p>е регистриран за участие в турнир от тип <strong>{model.TournamentType}</strong>.</p>
-
-        <div class='info'>
-            <p><strong>Треньор:</strong> {team.CoachName}</p>
-            <p><strong>Имейл за контакт:</strong> {team.ContactEmail}</p>
-            <p><strong>Дата:</strong> {DateTime.Now:dd.MM.yyyy}</p>
-        </div>
-
-        <div class='footer'>
-            <div class='signature'>
-                <img src='https://yourdomain.com/images/signature.png' width='100' /><br/>
-                <span>Подпис</span>
-            </div>
-            <div class='stamp'>
-                <img src='https://yourdomain.com/images/stamp.png' width='100' /><br/>
-                <span>Печат</span>
-            </div>
-        </div>
-
-        <div class='serial'>
-            Сертификат № {certificateId}
-        </div>
-    </div>
-</body>
-</html>";
-
-            // Генериране на PDF
-            var pdfBytes = pdfService.GeneratePdfFromHtml(html);
-
-            if (pdfBytes != null && pdfBytes.Length > 0)
-            {
-                TempData["Message"] = "Отборът е добавен и заявката за участие е подадена.";
-                return File(pdfBytes, "application/pdf", "sertifikat.pdf");
-            }
-
-            TempData["Error"] = "Създаден е отбор, но сертификатът не беше генериран.";
+            TempData["Message"] = "Отборът е добавен и заявката за участие е подадена.";
             return RedirectToAction("Index", "Home");
         }
-
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id)
@@ -246,59 +162,6 @@
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Editor")]
-        [HttpGet]
-        public IActionResult EnterCode()
-        {
-            return View();
-        }
-
-        [Authorize(Roles = "Editor")]
-        [HttpPost]
-        public async Task<IActionResult> ValidateCode(string code)
-        {
-            var userId = User.Id();
-
-            if (userId != code)
-            {
-                TempData["Error"] = "Невалиден код.";
-                return RedirectToAction("EnterCode");
-            }
-
-            var request = await _context.ManagerRequests.FirstOrDefaultAsync(r =>
-                r.UserId == userId && r.IsApproved == true);
-
-            if (request == null)
-            {
-                TempData["Error"] = "Нямате одобрена заявка за участие.";
-                return RedirectToAction("EnterCode");
-            }
-
-            TempData["CodeValidated"] = "true";
-            return RedirectToAction("Create");
-        }
-
-        [AllowAnonymous]
-        public async Task<IActionResult> Details(int id)
-        {
-            var team = await _context.Teams
-                .Where(t => t.Id == id)
-                .Select(t => new TeamViewModel
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    CoachName = t.CoachName,
-                    LogoUrl = t.LogoUrl,
-                    ContactEmail = t.ContactEmail,
-                    FeePaid = t.FeePaid
-                })
-                .FirstOrDefaultAsync();
-
-            if (team == null)
-                return NotFound();
-
-            return View(team);
-        }
         // GET: Teams/Delete/5
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int id)
