@@ -40,8 +40,12 @@ public class AdminApprovalModel : PageModel
         await _context.SaveChangesAsync();
 
         // Изпращане на SMS (примерно)
-        var message = $"Вашият код за регистриране на отбор е: {UserId}";
-        await _smsSender.SendSmsAsync(request.User.PhoneNumber, message);
+        var message = $"Вашият код за регистриране на отбор е: {request.UserId}";
+
+        if (!string.IsNullOrWhiteSpace(request.User.PhoneNumber))
+        {
+            await _smsSender.SendSmsAsync(request.User.PhoneNumber, message);
+        }
 
         TempData["Message"] = "Заявката беше одобрена и SMS беше изпратен.";
         return RedirectToPage("/Index");
