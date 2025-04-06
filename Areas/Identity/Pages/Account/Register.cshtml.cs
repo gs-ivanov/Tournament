@@ -4,7 +4,11 @@
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.EntityFrameworkCore;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
@@ -26,6 +30,9 @@
             this.signInManager = signInManager;
             this.context = context;
         }
+
+        public List<SelectListItem> AvailableTournaments { get; set; }
+
 
         [BindProperty]
         public InputModel Input { get; set; }
@@ -56,6 +63,11 @@
             [Display(Name = "Стани мениджър")]
             public bool BecomeManager { get; set; }
 
+            [Required]
+            [Display(Name = "Турнир")]
+            public int TournamentId { get; set; }
+
+
             [Display(Name = "Тип турнир")]
             public TournamentType? TournamentType { get; set; }
 
@@ -65,9 +77,20 @@
         }
 
 
-        public void OnGet(string returnUrl = null)
+        public async Task OnGetAsync(string returnUrl = null)
         {
-            ReturnUrl = returnUrl;
+            returnUrl ??= Url.Content("~/");
+
+            // Автоматично избира първия отворен турнир (или фиксиран Id = 1)
+            var openTournament = await context.Tournaments
+                .Where(t => t.IsOpenForApplications)
+                .OrderBy(t => t.StartDate)
+                .FirstOrDefaultAsync();
+
+            Input = new InputModel
+            {
+                TournamentId = openTournament?.Id ?? 1 // ако няма нищо в базата
+            };
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
@@ -96,6 +119,7 @@
                         var request = new ManagerRequest
                         {
                             UserId = user.Id,
+                            TournamentId = Input.TournamentId, // ✅ ВАЖНО!
                             TournamentType = Input.TournamentType.Value,
                             JsonPayload = ManagerRequest.GenerateJson(user.Email, Input.TournamentType.Value),
                             Status = RequestStatus.Pending

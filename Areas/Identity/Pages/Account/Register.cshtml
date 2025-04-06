@@ -36,11 +36,16 @@
                 <label asp-for="Input.BecomeManager" class="form-check-label"></label>
             </div>
 
-            <div class="form-group mb-3" id="tournamentTypeContainer" style="display:none;">
+            <!-- Dropdown за тип турнир -->
+            <div class="form-group mb-3 manager-only" style="display: none;">
                 <label asp-for="Input.TournamentType" class="form-label"></label>
                 <select asp-for="Input.TournamentType" asp-items="Html.GetEnumSelectList<TournamentType>()" class="form-control"></select>
                 <span asp-validation-for="Input.TournamentType" class="text-danger"></span>
             </div>
+
+            <!-- Скрито поле за TournamentId -->
+            <input type="hidden" asp-for="Input.TournamentId" />
+
             <input type="hidden" name="Role" value="@Model.Role" />
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
@@ -49,16 +54,21 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
     <script>
         const checkbox = document.getElementById("managerCheck");
-        const container = document.getElementById("tournamentTypeContainer");
+        const managerFields = document.querySelectorAll(".manager-only");
 
-        checkbox.addEventListener("change", function () {
-            container.style.display = this.checked ? "block" : "none";
-        });
+        function toggleManagerFields() {
+            managerFields.forEach(el => {
+                el.style.display = checkbox.checked ? "block" : "none";
+            });
+        }
 
-        window.addEventListener("load", function () {
-            container.style.display = checkbox.checked ? "block" : "none";
-        });
+        // Промяна в реално време
+        checkbox.addEventListener("change", toggleManagerFields);
+
+        // При зареждане на страницата
+        window.addEventListener("load", toggleManagerFields);
     </script>
 }

@@ -1,8 +1,7 @@
 namespace Tournament
 {
-    using Tournament.Data;
-    using Tournament.Data.Models;
-    using Tournament.Infrastructure;
+    using DinkToPdf;
+    using DinkToPdf.Contracts;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Identity;
@@ -11,11 +10,14 @@ namespace Tournament
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Tournament.Services.Ranking;
-    using Tournament.Services.MatchScheduler;
-    using Tournament.Services.MatchResultNotifire;
+    using Tournament.Data;
+    using Tournament.Data.Models;
+    using Tournament.Infrastructure;
     using Tournament.Services.Email;
-    using System.IO;
+    using Tournament.Services.MatchResultNotifire;
+    using Tournament.Services.MatchScheduler;
+    using Tournament.Services.PDF;
+    using Tournament.Services.Ranking;
     using Tournament.Services.Sms;
 
     public class Startup
@@ -62,6 +64,10 @@ namespace Tournament
                 .AddTransient<IEmailSender, EmailSender>();
             services
                 .AddTransient<ISmsSender, TwilioSmsSender>();
+            services
+                .AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+            services
+                .AddScoped<PdfService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

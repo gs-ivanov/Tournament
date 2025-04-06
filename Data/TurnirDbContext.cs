@@ -23,6 +23,12 @@
         {
             builder.Entity<Ranking>().HasNoKey();
 
+            //builder.Entity<Tournament>().HasData(
+            //    new Tournament { Id = 1, Name = "Пролетен", Type = "Knockout", StartDate = DateTime.Now.AddDays(10), IsOpenForApplications = true },
+            //    new Tournament { Id = 2, Name = "Летен", Type = "RoundRobin", StartDate = DateTime.Now.AddMonths(1), IsOpenForApplications = true }
+            //);
+
+
             builder.Entity<ManagerRequest>()
                 .HasOne(m => m.Team)
                 .WithMany()

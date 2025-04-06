@@ -13,11 +13,10 @@
         public string UserId { get; set; }
         public User User { get; set; }
 
-        [Required]
-        public int TeamId { get; set; }
+        public int? TeamId { get; set; }
         public Team Team { get; set; }
 
-        public TournamentType TournamentType { get; set; }
+        public TournamentType? TournamentType { get; set; }
         public string JsonPayload { get; set; }
         public RequestStatus Status { get; set; } = RequestStatus.Pending;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
