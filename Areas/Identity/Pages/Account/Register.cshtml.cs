@@ -112,6 +112,24 @@
                 {
                     if (Input.BecomeManager)
                     {
+                        var isTeamExists = this.context.Teams
+                            .Where(t => t.UserId == user.Id)
+                            .FirstOrDefault();
+                        if (isTeamExists==null)
+                        {
+                            var teamData = new Team
+                            {
+                                Name = "TempName",
+                                CoachName = "TempCoachName",
+                                ContactEmail = "Temp@.xxx.com",
+                                FeePaid = false,
+                                LogoUrl = "",
+                                UserId = user.Id
+                            };
+
+                            this.context.Add(teamData);
+                            this.context.SaveChanges();
+                        }
                         // Добавяме в роля Editor
                         await userManager.AddToRoleAsync(user, "Editor");
 
@@ -141,7 +159,8 @@
                         await userManager.UpdateAsync(user);               // задължително – запазва промените
                     }
 
-                    await signInManager.SignInAsync(user, isPersistent: false);
+                        await signInManager.SignInAsync(user, isPersistent: false);
+
                     return LocalRedirect(returnUrl);
                 }
 

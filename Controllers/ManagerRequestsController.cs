@@ -8,6 +8,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using Tournament.Data;
+    using Tournament.Infrastructure.Extensions;
     using Tournament.Models;
     using Tournament.Services.Email;
 
@@ -42,8 +43,13 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Approve(int id)
+        public async Task<IActionResult> Approve(int id,string userId="")
         {
+            var teamData = this._context.Teams
+                .Where(t => t.UserId == userId)
+                .FirstOrDefault();
+
+
             var request = await _context.ManagerRequests
                 .Include(r => r.Team)
                 .Include(r => r.User)
@@ -53,18 +59,19 @@
                 return NotFound();
 
             request.Status = RequestStatus.Approved;
-            request.Team.FeePaid = true;
+            //teamData.FeePaid = true;
 
             await _context.SaveChangesAsync();
 
             // Изпращане на имейл известие
             var link = Url.Action("Download", "Certificates", new { teamId = request.TeamId }, Request.Scheme);
             var subject = "Удостоверение за участие в турнир";
-            var body = $"Уважаеми {request.User.FullName},\n\nВашата заявка за участие с отбор \"{request.Team.Name}\" беше одобрена.\n\nМожете да изтеглите удостоверението си от следния линк:\n{link}\n\nПоздрави,\nЕкипът на Tournament";
+            var body = "Test";
+            //var body = $"Уважаеми {request.User.FullName},\n\nВашата заявка за участие с отбор \"{request.Team.Name}\" беше одобрена.\n\nМожете да изтеглите удостоверението си от следния линк:\n{link}\n\nПоздрави,\nЕкипът на Tournament";
 
             await _emailSender.SendAsync(request.User.Email, subject, body); // ✅ правилен ред 
 
-            TempData["Message"] = $"✅ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше одобрена.";
+            TempData["Message"] = $"Test ";//✅ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше одобрена.";
             return RedirectToAction(nameof(Index));
         }
 
