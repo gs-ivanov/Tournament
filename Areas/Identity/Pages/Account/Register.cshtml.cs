@@ -136,7 +136,7 @@
 
                     if (Role == "Manager")
                     {
-                        await userManager.AddToRoleAsync(user, "Editor");  // добавяне в роля „Менажер“
+                        await userManager.AddToRoleAsync(user, "Editor");  // добавяне в роля „Мениджър“
                         user.IsManager = true;                              // задаване на флага
                         await userManager.UpdateAsync(user);               // задължително – запазва промените
                     }

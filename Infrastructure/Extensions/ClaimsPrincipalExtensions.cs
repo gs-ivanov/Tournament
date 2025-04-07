@@ -18,7 +18,7 @@
         public static string DisplayRole(this ClaimsPrincipal user)
         {
             if (user.IsInRole("Administrator")) return "Администратор";
-            if (user.IsInRole("Editor")) return "Менажер";
+            if (user.IsInRole("Editor")) return "Мениджър";
             return "Гост";
         }
     }
