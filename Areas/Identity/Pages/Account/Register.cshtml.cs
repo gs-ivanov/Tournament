@@ -1,46 +1,39 @@
 ﻿namespace Tournament.Areas.Identity.Pages.Account
 {
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
-    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
     using Tournament.Models;
+    using Tournament.Services.Sms;
 
-    [AllowAnonymous]
     public class RegisterModel : PageModel
     {
-        private readonly TurnirDbContext context;
-        private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
+        private readonly SignInManager<User> signInManager;
+        private readonly TurnirDbContext context;
+        private readonly ISmsSender smsSender;
 
         public RegisterModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            TurnirDbContext context)
+            TurnirDbContext context,
+            ISmsSender smsSender)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.context = context;
+            this.smsSender = smsSender;
         }
-
-        public List<SelectListItem> AvailableTournaments { get; set; }
-
 
         [BindProperty]
         public InputModel Input { get; set; }
-
         public string ReturnUrl { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string Role { get; set; }
 
         public class InputModel
         {
@@ -50,11 +43,15 @@
             public string Email { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "Паролата трябва да е поне {2} символа.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
             [Display(Name = "Парола")]
+            [DataType(DataType.Password)]
             public string Password { get; set; }
 
+            [Required]
+            [Display(Name = "Пълно име")]
+            public string FullName { get; set; }
+
+            [Required]
             [DataType(DataType.Password)]
             [Display(Name = "Потвърди паролата")]
             [Compare("Password", ErrorMessage = "Паролите не съвпадат.")]
@@ -63,95 +60,81 @@
             [Display(Name = "Стани мениджър")]
             public bool BecomeManager { get; set; }
 
-            [Required]
-            [Display(Name = "Турнир")]
-            public int TournamentId { get; set; }
-
-
             [Display(Name = "Тип турнир")]
             public TournamentType? TournamentType { get; set; }
-
-            [Required]
-            [Display(Name = "Име и фамилия")]
-            public string FullName { get; set; }
         }
 
+        public void OnGet() { }
 
-        public async Task OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync()
         {
-            returnUrl ??= Url.Content("~/");
+            if (!ModelState.IsValid) return Page();
 
-            // Автоматично избира първия отворен турнир (или фиксиран Id = 1)
-            var openTournament = await context.Tournaments
-                .Where(t => t.IsOpenForApplications)
-                .OrderBy(t => t.StartDate)
-                .FirstOrDefaultAsync();
-
-            Input = new InputModel
+            var user = new User
             {
-                TournamentId = openTournament?.Id ?? 1 // ако няма нищо в базата
+                UserName = Input.Email,
+                Email = Input.Email
             };
-        }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
-        {
-            returnUrl ??= Url.Content("~/");
+            var result = await userManager.CreateAsync(user, Input.Password);
 
-            if (ModelState.IsValid)
+            if (!result.Succeeded)
             {
-                var user = new User
-                {
-                    UserName = Input.Email,
-                    Email = Input.Email,
-                    FullName = Input.FullName
-                };
-
-                var result = await this.userManager.CreateAsync(user, Input.Password);
-
-                if (result.Succeeded)
-                {
-                    if (Input.BecomeManager)
-                    {
-                        // Добавяме в роля Editor
-                        await userManager.AddToRoleAsync(user, "Editor");
-
-                        // Създаваме заявка
-                        var request = new ManagerRequest
-                        {
-                            UserId = user.Id,
-                            TournamentId = Input.TournamentId, // ✅ ВАЖНО!
-                            TournamentType = Input.TournamentType.Value,
-                            JsonPayload = ManagerRequest.GenerateJson(user.Email, Input.TournamentType.Value),
-                            Status = RequestStatus.Pending
-                        };
-
-                        context.ManagerRequests.Add(request);
-                        await context.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        await userManager.AddToRoleAsync(user, "Fan");
-                    }
-                    //var roleFromQuery = Request.Query["role"].ToString();
-
-                    if (Role == "Manager")
-                    {
-                        await userManager.AddToRoleAsync(user, "Editor");  // добавяне в роля „Мениджър“
-                        user.IsManager = true;                              // задаване на флага
-                        await userManager.UpdateAsync(user);               // задължително – запазва промените
-                    }
-
-                    await signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
-                }
-
                 foreach (var error in result.Errors)
-                {
                     ModelState.AddModelError(string.Empty, error.Description);
-                }
+                return Page();
             }
 
-            return Page();
+            if (Input.BecomeManager && Input.TournamentType.HasValue)
+            {
+                // 1. Създаване на дефолтен отбор
+                var team = new Team
+                {
+                    Name = "Временен отбор",
+                    CoachName = "Временен треньор",
+                    LogoUrl = "",
+                    FeePaid = false,
+                    UserId = user.Id
+                };
+
+                context.Teams.Add(team);
+                await context.SaveChangesAsync();
+
+                // 2. Създаване на заявка
+                // Намираме турнир от съответен тип, който е отворен за заявки
+                var tournament = await context.Tournaments
+                    .Where(t => t.Type == Input.TournamentType && t.IsOpenForApplications)
+                    .OrderBy(t => t.StartDate)
+                    .FirstOrDefaultAsync();
+
+                if (tournament == null)
+                {
+                    TempData["Error"] = "Няма наличен турнир от избрания тип, който е отворен за заявки.";
+                    return RedirectToPage("/Index");
+                }
+
+                var request = new ManagerRequest
+                {
+                    UserId = user.Id,
+                    TeamId = team.Id,
+                    TournamentType = Input.TournamentType.Value,
+                    TournamentId = tournament.Id, // ✅ задаваме го динамично
+                    JsonPayload = $"{{ \"user\": \"{user.Email}\" }}",
+                    Status = RequestStatus.Pending,
+                    IsApproved = false
+                };
+
+                context.ManagerRequests.Add(request);
+                await context.SaveChangesAsync();
+
+                // 3. Изпращане на SMS
+                var message = $"Заявката за включване в турнира {Input.TournamentType} е приета.\nСлед превод на Х лв. по сметка ХХХХ БАНКА, регистрирайте отново с код: {user.Id}";
+                await smsSender.SendSmsAsync("+359885773102", message); // ← Твоят номер
+            }
+
+            // 4. Изход от системата
+            TempData["Message"] = "Регистрацията е успешна. Очаквайте одобрение.";
+            return RedirectToPage("/Index");
         }
     }
 }

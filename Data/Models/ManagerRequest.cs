@@ -13,7 +13,7 @@
         public string UserId { get; set; }
         public User User { get; set; }
 
-        public int? TeamId { get; set; }
+        public int TeamId { get; set; }
         public Team Team { get; set; }
 
         public TournamentType? TournamentType { get; set; }
@@ -23,6 +23,8 @@
 
         public int TournamentId { get; set; }
         public Tournament Tournament { get; set; }
+
+        public string ReceiptNumber { get; set; }
 
         public bool IsApproved { get; set; } = false;
         public bool FeePaid { get; set; } = false;
@@ -47,7 +49,6 @@
             {
                 TeamName = team.Name,
                 Coach = team.CoachName,
-                ContactEmail = team.ContactEmail,
                 TournamentType = tournamentType.ToString(),
                 SubmittedAt = DateTime.UtcNow
             };

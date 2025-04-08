@@ -4,6 +4,7 @@
     using Microsoft.EntityFrameworkCore;
     using System;
     using Tournament.Data.Models;
+    using Tournament.Models;
 
     public class TurnirDbContext : IdentityDbContext<User>
     {
@@ -23,24 +24,22 @@
         {
             builder.Entity<Ranking>().HasNoKey();
 
-            //builder.Entity<Tournament>().HasData(
-            //    new Tournament { Id = 1, Name = "Пролетен", Type = "Knockout", StartDate = DateTime.Now.AddDays(10), IsOpenForApplications = true },
-            //    new Tournament { Id = 2, Name = "Летен", Type = "RoundRobin", StartDate = DateTime.Now.AddMonths(1), IsOpenForApplications = true }
-            //);
-
-
             builder.Entity<ManagerRequest>()
                 .HasOne(m => m.Team)
                 .WithMany()
                 .HasForeignKey(m => m.TeamId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Tournament>()
+                    .Property(t => t.Type)
+                    .HasConversion<int>(); // enum → int в базата
+
             builder.Entity<Tournament>().HasData(
                new Tournament
                {
                    Id = 1,
                    Name = "Пролетен турнир",
-                   Type = "Елиминации",
+                   Type = TournamentType.Knockout,
                    StartDate = new DateTime(2025, 5, 10),
                    IsOpenForApplications = true
                },
@@ -48,7 +47,7 @@
                {
                    Id = 2,
                    Name = "Летен шампионат",
-                   Type = "Групова фаза",
+                   Type = TournamentType.DoubleElimination,
                    StartDate = new DateTime(2025, 7, 1),
                    IsOpenForApplications = true
                },
@@ -56,7 +55,7 @@
                {
                    Id = 3,
                    Name = "Зимна купа",
-                   Type = "Елиминации",
+                   Type = TournamentType.RoundRobin,
                    StartDate = new DateTime(2025, 12, 5),
                    IsOpenForApplications = false
                }

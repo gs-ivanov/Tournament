@@ -8,17 +8,20 @@
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
-    using Tournament.Models;
+    using Tournament.Services.PDF;
     using Tournament.Models.Teams;
     using Tournament.Infrastructure.Extensions;
+    using System;
 
     public class TeamsController : Controller
     {
         private readonly TurnirDbContext _context;
+        private readonly PdfService pdfService;
 
-        public TeamsController(TurnirDbContext context)
+        public TeamsController(TurnirDbContext context, PdfService pdfService)
         {
             _context = context;
+            this.pdfService = pdfService;
         }
 
         [AllowAnonymous]
@@ -31,7 +34,6 @@
                     Name = t.Name,
                     CoachName = t.CoachName,
                     LogoUrl = t.LogoUrl,
-                    ContactEmail = t.ContactEmail,
                     FeePaid = t.FeePaid
                 })
                 .ToListAsync();
@@ -50,7 +52,6 @@
                     Name = t.Name,
                     CoachName = t.CoachName,
                     LogoUrl = t.LogoUrl,
-                    ContactEmail = t.ContactEmail,
                     FeePaid = t.FeePaid
                 })
                 .FirstOrDefaultAsync();
@@ -62,25 +63,27 @@
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Editor"))
+            if (!TempData.ContainsKey("VerifiedManagerId"))
             {
-                TempData["Error"] = "Само регистрирани мениджъри могат да добавят отбори.";
-                return RedirectToAction("Index");
+                TempData["Error"] = "Нямате достъп до създаване на отбор. Въведете код за достъп.";
+                return RedirectToAction("EnterCode", "VerifyCode");
             }
 
-            return View();
+            TempData.Keep("VerifiedManagerId"); // запазваме за POST
+
+            return View(new CreateTeamViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateTeamViewModel model)
         {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Editor"))
+            if (!TempData.ContainsKey("VerifiedManagerId"))
             {
-                TempData["Error"] = "Нямате права да добавяте отбори.";
-                return RedirectToAction("Index");
+                TempData["Error"] = "Нямате достъп до създаване на отбор.";
+                return RedirectToAction("EnterCode", "VerifyCode");
             }
 
             if (!ModelState.IsValid)
@@ -88,34 +91,51 @@
                 return View(model);
             }
 
-            var userId = User.Id();
+            var userId = TempData["VerifiedManagerId"].ToString();
 
             var team = new Team
             {
                 Name = model.Name,
                 CoachName = model.CoachName,
                 LogoUrl = model.LogoUrl,
-                ContactEmail = model.ContactEmail,
-                FeePaid = false,
+                FeePaid = true,
                 UserId = userId
             };
 
             _context.Teams.Add(team);
             await _context.SaveChangesAsync();
 
-            var request = new ManagerRequest
+            // Актуализираме заявката
+            var request = await _context.ManagerRequests.FirstOrDefaultAsync(r => r.UserId == userId);
+            if (request != null)
             {
-                UserId =userId,
-                TeamId = team.Id,
-                TournamentType = model.TournamentType,
-                JsonPayload = ManagerRequest.GenerateJson(team, model.TournamentType),
-                Status = RequestStatus.Pending
-            };
+                request.TeamId = team.Id;
+                await _context.SaveChangesAsync();
+            }
 
-            _context.ManagerRequests.Add(request);
-            await _context.SaveChangesAsync();
+            // PDF сертификат
+            var certificateId = Guid.NewGuid().ToString().Substring(0, 8);
+            var html = $@"
+                    <html>
+                    <head><style>body {{ font-family: Arial; padding: 40px; }}</style></head>
+                    <body>
+                        <h1>СЕРТИФИКАТ ЗА УЧАСТИЕ</h1>
+                        <p>Отбор: <strong>{team.Name}</strong></p>
+                        <p>Тип турнир: <strong>{request?.TournamentType}</strong></p>
+                        <p>Дата: {DateTime.Now:dd.MM.yyyy}</p>
+                        <p>Сертификат №: <strong>{certificateId}</strong></p>
+                    </body>
+                    </html>";
 
-            TempData["Message"] = "Отборът е добавен и заявката за участие е подадена.";
+            var pdfBytes = pdfService.GeneratePdfFromHtml(html);
+
+            if (pdfBytes != null && pdfBytes.Length > 0)
+            {
+                TempData["Message"] = "Отборът е създаден успешно.";
+                return File(pdfBytes, "application/pdf", "sertifikat.pdf");
+            }
+
+            TempData["Error"] = "Създаден е отбор, но не беше генериран сертификат.";
             return RedirectToAction("Index", "Home");
         }
 
@@ -131,7 +151,6 @@
                 Name = team.Name,
                 CoachName = team.CoachName,
                 LogoUrl = team.LogoUrl,
-                ContactEmail = team.ContactEmail,
                 FeePaid = team.FeePaid
             };
 
@@ -152,7 +171,6 @@
             team.Name = model.Name;
             team.CoachName = model.CoachName;
             team.LogoUrl = model.LogoUrl;
-            team.ContactEmail = model.ContactEmail;
             team.FeePaid = model.FeePaid;
 
             _context.Teams.Update(team);
@@ -174,7 +192,6 @@
                     Name = t.Name,
                     CoachName = t.CoachName,
                     LogoUrl = t.LogoUrl,
-                    ContactEmail = t.ContactEmail,
                     FeePaid = t.FeePaid
                 })
                 .FirstOrDefaultAsync();
@@ -290,7 +307,6 @@
                 {
                     Name = teamNames[i],
                     CoachName = "Н/Д",
-                    ContactEmail = $"team{i + 1}@mail.bg",
                     FeePaid = false,
                     LogoUrl = teamLogos[i]
                 });

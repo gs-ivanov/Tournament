@@ -67,7 +67,7 @@ namespace Tournament
             services
                 .AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services
-                .AddScoped<PdfService>();
+                .AddTransient<PdfService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

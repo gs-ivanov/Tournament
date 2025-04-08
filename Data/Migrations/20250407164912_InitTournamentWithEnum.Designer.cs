@@ -10,8 +10,8 @@ using Tournament.Data;
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TurnirDbContext))]
-    [Migration("20250406122020_MakeTeamIdNullable")]
-    partial class MakeTeamIdNullable
+    [Migration("20250407164912_InitTournamentWithEnum")]
+    partial class InitTournamentWithEnum
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -225,16 +225,19 @@ namespace Tournament.Data.Migrations
                     b.Property<string>("JsonPayload")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ReceiptNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TeamId")
+                    b.Property<int>("TeamId")
                         .HasColumnType("int");
 
                     b.Property<int>("TournamentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TournamentType")
+                    b.Property<int?>("TournamentType")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -309,9 +312,6 @@ namespace Tournament.Data.Migrations
                     b.Property<string>("CoachName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ContactEmail")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("FeePaid")
                         .HasColumnType("bit");
 
@@ -348,8 +348,8 @@ namespace Tournament.Data.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -362,7 +362,7 @@ namespace Tournament.Data.Migrations
                             IsOpenForApplications = true,
                             Name = "Пролетен турнир",
                             StartDate = new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Елиминации"
+                            Type = 0
                         },
                         new
                         {
@@ -370,7 +370,7 @@ namespace Tournament.Data.Migrations
                             IsOpenForApplications = true,
                             Name = "Летен шампионат",
                             StartDate = new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Групова фаза"
+                            Type = 1
                         },
                         new
                         {
@@ -378,7 +378,7 @@ namespace Tournament.Data.Migrations
                             IsOpenForApplications = false,
                             Name = "Зимна купа",
                             StartDate = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Type = "Елиминации"
+                            Type = 2
                         });
                 });
 
@@ -570,7 +570,8 @@ namespace Tournament.Data.Migrations
                     b.HasOne("Tournament.Data.Models.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Tournament.Data.Models.Tournament", "Tournament")
                         .WithMany()

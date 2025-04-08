@@ -8,7 +8,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Type { get; set; }
+        public TournamentType Type { get; set; }
         public DateTime StartDate { get; set; }
         public bool IsOpenForApplications { get; set; }
     }
