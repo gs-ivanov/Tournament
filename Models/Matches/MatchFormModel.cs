@@ -18,7 +18,7 @@
 
         [Required]
         [Display(Name = "Дата на мача")]
-        public DateTime MatchDate { get; set; }
+        public DateTime PlayedOn { get; set; }
 
         public int? ScoreA { get; set; }
         public int? ScoreB { get; set; }

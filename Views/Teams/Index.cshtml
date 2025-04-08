@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TeamViewModel>
+﻿@model IEnumerable<Team>
 
 @{
     ViewData["Title"] = "Списък с отбори";
@@ -30,23 +30,54 @@
     <tbody>
         @foreach (var team in Model)
         {
+            var isDeletable = !team.MatchesAsTeamA.Any() &&
+                              !team.MatchesAsTeamB.Any() &&
+                              !team.ManagerRequests.Any();
+
             <tr>
-                <td>
-                    <a asp-controller="Teams" asp-action="Details" asp-route-id="@team.Id" class="btn btn-link btn-link"><img src="@team.LogoUrl" alt="logo" width="50" /></a>
-                </td>
                 <td>@team.Name</td>
                 <td>@team.CoachName</td>
-                <td>@team.ContactEmail</td>
-                <td>@(team.FeePaid ? "Да" : "Не")</td>
+                <td>@team.FeePaid</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-sm btn-info">Детайли</a>
-                    @if (User.IsInRole("Administrator"))
+                    <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm">Редактирай</a>
+
+                    @if (isDeletable)
                     {
-                        <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">Редакция</a>
-                        <a asp-action="Delete" asp-route-id="@team.Id" class="btn btn-sm btn-danger">Изтриване</a>
+                        <form asp-action="Delete" asp-route-id="@team.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Изтрий</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted">🔒 Не може да се изтрие</span>
                     }
                 </td>
             </tr>
         }
+        @*@foreach (var team in Model)
+        {
+            var isDeletable = !team.MatchesAsTeamA.Any() &&
+                              !team.MatchesAsTeamB.Any() &&
+                              !team.ManagerRequests.Any();
+            <tr>
+                <td>@team.Name</td>
+                <td>@team.CoachName</td>
+                <td>@team.FeePaid</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-warning">Редактирай</a>
+
+                    @if (!team.MatchesAsTeamA.Any() && !team.MatchesAsTeamB.Any() && !team.ManagerRequests.Any())
+                    {
+                        <form asp-action="Delete" asp-route-id="@team.Id" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Изтрий</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted">🛑 Връзки с мачове/заявки</span>
+                    }
+                </td>
+            </tr>
+        }*@
     </tbody>
 </table>

@@ -36,7 +36,7 @@
                     {
                         TeamAId = teams[i].Id,
                         TeamBId = teams[j].Id,
-                        MatchDate = startDate.AddDays(round * matchIntervalDays),
+                        PlayedOn = startDate.AddDays(round * matchIntervalDays),
                     });
                     round++;
                 }

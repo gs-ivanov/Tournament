@@ -260,7 +260,7 @@ namespace Tournament.Data.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("MatchDate")
+                    b.Property<DateTime?>("PlayedOn")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ScoreA")
@@ -275,7 +275,16 @@ namespace Tournament.Data.Migrations
                     b.Property<int>("TeamBId")
                         .HasColumnType("int");
 
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TeamAId");
+
+                    b.HasIndex("TeamBId");
+
+                    b.HasIndex("TournamentId");
 
                     b.ToTable("Matches");
                 });
@@ -574,7 +583,7 @@ namespace Tournament.Data.Migrations
                     b.HasOne("Tournament.Data.Models.Tournament", "Tournament")
                         .WithMany()
                         .HasForeignKey("TournamentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Tournament.Data.Models.User", "User")
@@ -588,6 +597,31 @@ namespace Tournament.Data.Migrations
                     b.Navigation("Tournament");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Tournament.Data.Models.Match", b =>
+                {
+                    b.HasOne("Tournament.Data.Models.Team", "TeamA")
+                        .WithMany()
+                        .HasForeignKey("TeamAId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Tournament.Data.Models.Team", "TeamB")
+                        .WithMany()
+                        .HasForeignKey("TeamBId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Tournament.Data.Models.Tournament", null)
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TeamA");
+
+                    b.Navigation("TeamB");
                 });
 
             modelBuilder.Entity("Tournament.Data.Models.Team", b =>

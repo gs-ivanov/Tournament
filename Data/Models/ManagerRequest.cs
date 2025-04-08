@@ -29,6 +29,7 @@
         public bool IsApproved { get; set; } = false;
         public bool FeePaid { get; set; } = false;
 
+
         // ✅ За регистрация (email)
         public static string GenerateJson(string email, TournamentType tournamentType)
         {

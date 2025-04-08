@@ -79,6 +79,13 @@
         </div>
     }
 
+    @if (User.IsInRole("Administrator"))
+    {
+        <form asp-controller="Maintenance" asp-action="CleanTemporaryTeams" method="post" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-danger">🧹 Почисти служебни отбори</button>
+        </form>
+    }
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()

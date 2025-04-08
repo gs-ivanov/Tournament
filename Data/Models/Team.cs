@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Tournament.Data.Models
 {
@@ -12,6 +13,13 @@ namespace Tournament.Data.Models
         //public string ContactEmail { get; set; }
         public bool FeePaid { get; set; }
 
+        // ✅ Навигационни свойства за мачовете
+        public ICollection<Match> MatchesAsTeamA { get; set; } = new List<Match>();
+        public ICollection<Match> MatchesAsTeamB { get; set; } = new List<Match>();
+
+        // ✅ Навигационно свойство за заявки
+        public ICollection<ManagerRequest> ManagerRequests { get; set; } = new List<ManagerRequest>();
+        
         [Required]
         public string UserId { get; set; }
         public User User { get; set; }

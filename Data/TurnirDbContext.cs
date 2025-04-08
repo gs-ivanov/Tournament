@@ -24,6 +24,19 @@
         {
             builder.Entity<Ranking>().HasNoKey();
 
+            builder.Entity<Match>()
+                .HasOne(m => m.TeamA)
+                .WithMany(t => t.MatchesAsTeamA)
+                .HasForeignKey(m => m.TeamAId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Match>()
+                .HasOne(m => m.TeamB)
+                .WithMany(t => t.MatchesAsTeamB)
+                .HasForeignKey(m => m.TeamBId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             builder.Entity<ManagerRequest>()
                 .HasOne(m => m.Team)
                 .WithMany()
@@ -63,6 +76,36 @@
 
 
             base.OnModelCreating(builder);
+
+            builder.Entity<Match>()
+                .HasOne(m => m.TeamA)
+                .WithMany()
+                .HasForeignKey(m => m.TeamAId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Match>()
+                .HasOne(m => m.TeamB)
+                .WithMany()
+                .HasForeignKey(m => m.TeamBId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Match>()
+                .HasOne<Tournament>()
+                .WithMany()
+                .HasForeignKey(m => m.TournamentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ManagerRequest>()
+                .HasOne(m => m.Team)
+                .WithMany()
+                .HasForeignKey(m => m.TeamId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ManagerRequest>()
+                .HasOne(m => m.Tournament)
+                .WithMany()
+                .HasForeignKey(m => m.TournamentId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

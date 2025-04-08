@@ -1,16 +1,16 @@
 ﻿namespace Tournament.Areas.Identity.Pages.Account
 {
-    using System.ComponentModel.DataAnnotations;
-    using System.Threading.Tasks;
+    using global::Tournament.Data;
+    using global::Tournament.Data.Models;
+    using global::Tournament.Services.Sms;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.EntityFrameworkCore;
-    using Tournament.Data;
-    using Tournament.Data.Models;
-    using Tournament.Services.Sms;
+    using System.ComponentModel.DataAnnotations;
+    using System.Threading.Tasks;
 
     [AllowAnonymous]
     public class LoginModel : PageModel
@@ -24,11 +24,13 @@
 
 
         public LoginModel(
+            UserManager<User> userManager,
             SignInManager<User> signInManager,
             TurnirDbContext context,
             ISmsSender smsSender
             )
         {
+            this.userManager = userManager;
             this.signInManager = signInManager;
             this.context = context;
             this.smsSender = smsSender;

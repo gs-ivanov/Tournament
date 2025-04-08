@@ -5,6 +5,7 @@
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Tournament.Data;
@@ -41,7 +42,7 @@
                 Id = m.Id,
                 TeamAName = teams.ContainsKey(m.TeamAId) ? teams[m.TeamAId] : "???",
                 TeamBName = teams.ContainsKey(m.TeamBId) ? teams[m.TeamBId] : "???",
-                MatchDate = m.MatchDate,
+                PlayedOn = (DateTime)m.PlayedOn,
                 ScoreA = m.ScoreA,
                 ScoreB = m.ScoreB
             });
@@ -55,7 +56,7 @@
         {
             var model = new MatchFormModel
             {
-                MatchDate = DateTime.Now,
+                PlayedOn = DateTime.Now,
                 Teams = _context.Teams.Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
@@ -97,10 +98,10 @@
             {
                 TeamAId = model.TeamAId,
                 TeamBId = model.TeamBId,
-                MatchDate = model.MatchDate
+                PlayedOn = model.PlayedOn
             };
 
-            if (model.MatchDate <= DateTime.Now)
+            if (model.PlayedOn <= DateTime.Now)
             {
                 match.ScoreA = model.ScoreA;
                 match.ScoreB = model.ScoreB;
@@ -129,7 +130,7 @@
                 Id = match.Id,
                 TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
                 TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
-                MatchDate = match.MatchDate,
+                PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB
             };
@@ -150,7 +151,7 @@
                 Id = match.Id,
                 TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
                 TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
-                MatchDate = match.MatchDate,
+                PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB
             };
@@ -185,7 +186,7 @@
             {
                 TeamAId = match.TeamAId,
                 TeamBId = match.TeamBId,
-                MatchDate = match.MatchDate,
+                PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB,
                 Teams = await _context.Teams
@@ -224,9 +225,9 @@
 
             match.TeamAId = model.TeamAId;
             match.TeamBId = model.TeamBId;
-            match.MatchDate = model.MatchDate;
+            match.PlayedOn = model.PlayedOn;
 
-            if (model.MatchDate <= DateTime.Now)
+            if (model.PlayedOn <= DateTime.Now)
             {
                 match.ScoreA = model.ScoreA;
                 match.ScoreB = model.ScoreB;
@@ -249,16 +250,66 @@
             return RedirectToAction(nameof(Index));
         }
 
-
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> GenerateMatches()
+        public async Task<IActionResult> GenerateSchedule(int tournamentId)
         {
-            var startDate = DateTime.Today.AddDays(1);
-            int count = await _matchScheduler.GenerateScheduleAsync(startDate);
+            // Вземи одобрените отбори за турнира
+            var teams = await _context.Teams
+                .Where(t => _context.ManagerRequests.Any(r =>
+                    r.TeamId == t.Id &&
+                    r.TournamentId == tournamentId &&
+                    r.IsApproved &&
+                    r.FeePaid))
+                .ToListAsync();
 
-            TempData["Message"] = $"Генерирани са {count} мача, започвайки от {startDate:dd.MM.yyyy}.";
+            if (teams.Count < 4)
+            {
+                TempData["Error"] = "Нужни са поне 4 одобрени отбора за съставяне на график.";
+                return RedirectToAction("Index");
+            }
+
+            // Проверка дали вече има срещи
+            bool hasMatches = await _context.Matches
+                .AnyAsync(m => m.TournamentId == tournamentId);
+
+            if (hasMatches)
+            {
+                TempData["Error"] = "Срещите за този турнир вече са генерирани.";
+                return RedirectToAction("Index");
+            }
+
+            // Генериране на мачове всеки срещу всеки
+            var matches = new List<Match>();
+
+            for (int i = 0; i < teams.Count; i++)
+            {
+                for (int j = i + 1; j < teams.Count; j++)
+                {
+                    matches.Add(new Match
+                    {
+                        TournamentId = tournamentId,
+                        TeamAId = teams[i].Id,
+                        TeamBId = teams[j].Id
+                    });
+                }
+            }
+
+            _context.Matches.AddRange(matches);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"Генерирани са {matches.Count} мача.";
             return RedirectToAction("Index");
         }
+
+        //[Authorize(Roles = "Administrator")]
+        //public async Task<IActionResult> GenerateMatches()
+        //{
+        //    var startDate = DateTime.Today.AddDays(1);
+        //    int count = await _matchScheduler.GenerateScheduleAsync(startDate);
+
+        //    TempData["Message"] = $"Генерирани са {count} мача, започвайки от {startDate:dd.MM.yyyy}.";
+        //    return RedirectToAction("Index");
+        //}
 
     }
 

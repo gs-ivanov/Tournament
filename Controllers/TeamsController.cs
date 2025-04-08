@@ -24,18 +24,12 @@
             this.pdfService = pdfService;
         }
 
-        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var teams = await _context.Teams
-                .Select(t => new TeamViewModel
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    CoachName = t.CoachName,
-                    LogoUrl = t.LogoUrl,
-                    FeePaid = t.FeePaid
-                })
+                .Include(t => t.MatchesAsTeamA)
+                .Include(t => t.MatchesAsTeamB)
+                .Include(t => t.ManagerRequests)
                 .ToListAsync();
 
             return View(teams);
