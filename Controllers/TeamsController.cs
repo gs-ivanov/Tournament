@@ -124,7 +124,7 @@
             var pdfBytes = pdfService.GeneratePdfFromHtml(html);
 
             if (pdfBytes != null && pdfBytes.Length > 0)
-            {
+            {  //debug
                 TempData["Message"] = "Отборът е създаден успешно.";
                 return File(pdfBytes, "application/pdf", "sertifikat.pdf");
             }
@@ -227,6 +227,7 @@
         // POST: Teams/CreateMultiple
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // POST: Teams/CreateMultiple
         public async Task<IActionResult> CreateMultiple(TeamFormModel model)
         {
             if (!ModelState.IsValid)
@@ -234,16 +235,13 @@
                 return View(model);
             }
 
-            // Проверка за вече съществуващи отбори
             if (_context.Teams.Any())
             {
                 TempData["Message"] = "Вече има записи в базата. Изчисти ги преди да добавиш нови.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var teams = SeedTeams()
-                .Take(model.TeamCount)
-                .ToList();
+            var teams = SeedTeams().Take(model.TeamCount).ToList();
 
             _context.Teams.AddRange(teams);
             await _context.SaveChangesAsync();
@@ -251,6 +249,30 @@
             TempData["Message"] = $"Успешно добавени {teams.Count} отбора.";
             return RedirectToAction(nameof(Index));
         }
+        //public async Task<IActionResult> CreateMultiple(TeamFormModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(model);
+        //    }
+
+        //    // Проверка за вече съществуващи отбори
+        //    if (_context.Teams.Any())
+        //    {
+        //        TempData["Message"] = "Вече има записи в базата. Изчисти ги преди да добавиш нови.";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    var teams = SeedTeams()
+        //        .Take(model.TeamCount)
+        //        .ToList();
+
+        //    _context.Teams.AddRange(teams);
+        //    await _context.SaveChangesAsync();
+
+        //    TempData["Message"] = $"Успешно добавени {teams.Count} отбора.";
+        //    return RedirectToAction(nameof(Index));
+        //}
 
         private static List<Team> SeedTeams()
         {

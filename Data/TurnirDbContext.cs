@@ -27,6 +27,10 @@
             // Без ключ за Ranking (временно)
             builder.Entity<Ranking>().HasNoKey();
 
+            builder.Entity<Team>()
+                .Property(t => t.UserId)
+                .IsRequired(false); // 🟢 позволяваме null
+
             // Match → TeamA
             builder.Entity<Match>()
                 .HasOne(m => m.TeamA)

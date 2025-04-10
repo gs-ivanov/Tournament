@@ -20,7 +20,7 @@ namespace Tournament.Data.Models
         public ICollection<ManagerRequest> ManagerRequests { get; set; } = new List<ManagerRequest>();
         
         [Required]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
         public User User { get; set; }
     }
 }
