@@ -5,24 +5,27 @@
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
-    // ViewModel за създаване и редакция на мач
     public class MatchFormModel
     {
-        [Required]
+        public int Id { get; set; }
+
         [Display(Name = "Отбор A")]
+        [Required]
         public int TeamAId { get; set; }
 
-        [Required]
         [Display(Name = "Отбор B")]
+        [Required]
         public int TeamBId { get; set; }
 
-        [Required]
-        [Display(Name = "Дата на мача")]
-        public DateTime PlayedOn { get; set; }
-
+        [Display(Name = "Резултат A")]
         public int? ScoreA { get; set; }
+
+        [Display(Name = "Резултат B")]
         public int? ScoreB { get; set; }
 
-        public IEnumerable<SelectListItem> Teams { get; set; }
+        [Display(Name = "Дата на мача")]
+        public DateTime? PlayedOn { get; set; }
+
+        public List<SelectListItem> Teams { get; set; } = new();
     }
 }

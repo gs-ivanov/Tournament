@@ -66,174 +66,213 @@
         }
 
         public void OnGet() { }
-
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            if (!ModelState.IsValid) return Page();
+            returnUrl ??= Url.Content("~/");
 
-            var user = new User
+            if (!ModelState.IsValid)
             {
-                UserName = Input.Email,
-                Email = Input.Email
-            };
-
-            var result = await userManager.CreateAsync(user, Input.Password);
-
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
                 return Page();
             }
 
-            if (Input.BecomeManager && Input.TournamentType.HasValue)
+            if (Input.BecomeManager && !Input.TournamentType.HasValue)
             {
-                // Проверка: дали вече има активна заявка от този потребител
-                var existingRequest = await context.ManagerRequests
-                    .FirstOrDefaultAsync(r => r.UserId == user.Id && !r.IsApproved);
+                TempData["Error"] = "Моля, изберете тип турнир.";
+                return Page();
+            }
 
-                if (existingRequest != null)
-                {
-                    TempData["Error"] = "Вече сте кандидатствали за участие като мениджър. Очаквайте одобрение.";
-                    return RedirectToPage("/Index");
-                }
-
-                // 1. Намиране на валиден турнир
+            // Опитваме в try само ако всичко е коректно
+            try
+            {
+                // Намираме турнир по тип
                 var tournament = await context.Tournaments
                     .Where(t => t.Type == Input.TournamentType && t.IsOpenForApplications)
                     .OrderBy(t => t.StartDate)
                     .FirstOrDefaultAsync();
 
-                if (tournament == null)
+                if (Input.BecomeManager && tournament == null)
                 {
                     TempData["Error"] = "Няма наличен турнир от избрания тип, който е отворен за заявки. Опитайте с друг турнир";
                     return RedirectToPage("/Index");
                 }
 
-                // 2. Създаване на дефолтен отбор
+                // 1. Създаване на потребител (само ако всичко дотук е ок)
+                var user = new User
+                {
+                    UserName = Input.Email,
+                    Email = Input.Email,
+                    FullName = Input.FullName
+                };
+
+                var result = await userManager.CreateAsync(user, Input.Password);
+
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+
+                    return Page();
+                }
+
+                // 2. Ако не е мениджър
+                if (!Input.BecomeManager)
+                {
+                    await userManager.AddToRoleAsync(user, "Fan");
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
+                }
+
+                // 3. Мениджър — допълнителна проверка дали вече има заявка
+                var existing = await context.ManagerRequests
+                    .AnyAsync(r => r.UserId == user.Id && r.TournamentId == tournament.Id);
+
+                if (existing)
+                {
+                    TempData["Error"] = "Вече сте кандидатствали за участие в този турнир.";
+                    return RedirectToPage("/Index");
+                }
+
+                // 4. Добавяме роля и служебен отбор
+                await userManager.AddToRoleAsync(user, "Editor");
+
                 var team = new Team
                 {
                     Name = "Временен отбор",
                     CoachName = "Временен треньор",
-                    LogoUrl = "",
-                    FeePaid = false,
-                    UserId = user.Id
+                    UserId = user.Id,
+                    FeePaid = false
                 };
 
-                // 3. Създаване на заявка
+                context.Teams.Add(team);
+                await context.SaveChangesAsync(); // Тук вече имаме team.Id
+
+                // 5. Заявка
                 var request = new ManagerRequest
                 {
                     UserId = user.Id,
-                    TournamentType = Input.TournamentType.Value,
+                    TeamId = team.Id,
                     TournamentId = tournament.Id,
-                    JsonPayload = $"{{ \"user\": \"{user.Email}\" }}",
+                    TournamentType = Input.TournamentType.Value,
                     Status = RequestStatus.Pending,
-                    IsApproved = false
+                    IsApproved = false,
+                    FeePaid = false
                 };
 
-                string message;
+                context.ManagerRequests.Add(request);
+                await context.SaveChangesAsync();
 
-                try
-                {
-                    // Първо добавяме отбор (за да има ID за заявката)
-                    context.Teams.Add(team);
-                    await context.SaveChangesAsync();
+                // 6. Изпращаме SMS
+                var smsText = $"Заявката за участие в турнира {Input.TournamentType} е приета. Ваш код: {user.Id}";
+                await smsSender.SendSmsAsync("+359885773102", smsText);
 
-                    // Свързваме заявката с току-що създадения отбор
-                    request.TeamId = team.Id;
-                    context.ManagerRequests.Add(request);
-                    await context.SaveChangesAsync();
-
-                    message = $"✅ Заявката за включване в турнира {Input.TournamentType} е приета.\nСлед превод на ХХХ лв. по сметка ###### в БАНКА, регистрирайте се отново с код: {user.UserName}";
-
-                    await smsSender.SendSmsAsync("+359885773102", message);
-
-                    TempData["Message"] = "Регистрацията е изпратена. Очаквайте одобрение по SMS.";
-
-                    return RedirectToPage("/Index");
-                }
-                catch (Exception ex)
-                {
-                    message = $"❌ Регистрацията не бе успешна. Моля, опитайте отново.";
-
-                    TempData["Error"] = "Възникна проблем при записа. Моля, опитайте отново.";
-
-                    await smsSender.SendSmsAsync("+359885773102", message);
-
-                    return RedirectToPage("/Index");
-                }
-
-                // 4. Изпращане на SMS (винаги – със съответното съобщение)
-                //await smsSender.SendSmsAsync("+359885773102", message);
-
-                // 5. Изход и потвърждение
-                //TempData["Message"] = "Регистрацията е изпратена. Очаквайте одобрение по SMS.";
-                //return RedirectToPage("/Index");
-
-                //    // 1. Създаване на дефолтен отбор
-                //    var team = new Team
-                //    {
-                //        Name = "Временен отбор",
-                //        CoachName = "Временен треньор",
-                //        LogoUrl = "",
-                //        FeePaid = false,
-                //        UserId = user.Id
-                //    };
-
-                //    //context.Teams.Add(team);
-                //    //await context.SaveChangesAsync();
-
-                //    // 2. Създаване на заявка
-                //    // Намираме турнир от съответен тип, който е отворен за заявки
-                //    var tournament = await context.Tournaments
-                //        .Where(t => t.Type == Input.TournamentType && t.IsOpenForApplications)
-                //        .OrderBy(t => t.StartDate)
-                //        .FirstOrDefaultAsync();
-
-                //    if (tournament == null)
-                //    {
-                //        TempData["Error"] = "Няма наличен турнир от избрания тип, който е отворен за заявки.";
-                //        return RedirectToPage("/Index");
-                //    }
-
-                //    var request = new ManagerRequest
-                //    {
-                //        UserId = user.Id,
-                //        TeamId = team.Id,
-                //        TournamentType = Input.TournamentType.Value,
-                //        TournamentId = tournament.Id, // ✅ задаваме го динамично
-                //        JsonPayload = $"{{ \"user\": \"{user.Email}\" }}",
-                //        Status = RequestStatus.Pending,
-                //        IsApproved = false
-                //    };
-
-                //    var message = "";// $"Заявката за включване в турнира {Input.TournamentType} е приета.\nСлед превод на ХXXX лв. по сметка No ###### в БАНКА, регистрирайте се отново с код: {user.PhoneNumber}";
-
-                //    try
-                //    {
-                //        context.Teams.Add(team);
-                //        //await context.SaveChangesAsync();
-                //        context.ManagerRequests.Add(request);
-                //        await context.SaveChangesAsync();
-
-                //    }
-                //    catch (System.Exception)
-                //    {
-                //         message = $"Заявката за включване в турнира {Input.TournamentType} е приета.\nСлед превод на ХXXX лв. по сметка No ###### в БАНКА, регистрирайте се отново с код: {user.PhoneNumber}";
-                //        await smsSender.SendSmsAsync("+359885773102", message); // ← Твоят номер
-                //        TempData["Message"] = "Регистрацията не е успешна. Опитайте пак.";
-                //        return RedirectToPage("/Index");
-                //    }
-
-                //    // 3. Изпращане на SMS
-                //    message = $"Заявката за включване в турнира {Input.TournamentType} не е приета.\nОпитайте пак.";
-                //        await smsSender.SendSmsAsync("+359885773102", message); // ← Твоят номер
-                //}
-
-                //// 4. Изход от системата
-                //TempData["Message"] = "Регистрацията е успешна. \nОчаквайте одобрение след превод на посочената в СМС-а сума и регистрация след това.";
+                TempData["Message"] = "Регистрацията е успешна. Очаквайте одобрение.";
+                return RedirectToPage("/Index");
             }
-            return RedirectToPage("/Index");
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Грешка: {ex.Message}";
+                return RedirectToPage("/Index");
+            }
         }
+        ////public async Task<IActionResult> OnPostAsync()
+        ////{
+        ////    if (!ModelState.IsValid) return Page();
+
+        ////    var user = new User
+        ////    {
+        ////        UserName = Input.Email,
+        ////        Email = Input.Email
+        ////    };
+
+        ////    var result = await userManager.CreateAsync(user, Input.Password);
+
+        ////    if (!result.Succeeded)
+        ////    {
+        ////        foreach (var error in result.Errors)
+        ////            ModelState.AddModelError(string.Empty, error.Description);
+        ////        return Page();
+        ////    }
+
+        ////    if (Input.BecomeManager && Input.TournamentType.HasValue)
+        ////    {
+        ////        // Проверка: дали вече има активна заявка от този потребител
+        ////        var existingRequest = await context.ManagerRequests
+        ////            .FirstOrDefaultAsync(r => r.UserId == user.Id && !r.IsApproved);
+
+        ////        if (existingRequest != null)
+        ////        {
+        ////            TempData["Error"] = "Вече сте кандидатствали за участие като мениджър. Очаквайте одобрение.";
+        ////            return RedirectToPage("/Index");
+        ////        }
+
+        ////        // 1. Намиране на валиден турнир
+        ////        var tournament = await context.Tournaments
+        ////            .Where(t => t.Type == Input.TournamentType && t.IsOpenForApplications)
+        ////            .OrderBy(t => t.StartDate)
+        ////            .FirstOrDefaultAsync();
+
+        ////        if (tournament == null)
+        ////        {
+        ////            TempData["Error"] = "Няма наличен турнир от избрания тип, който е отворен за заявки. Опитайте с друг турнир";
+        ////            return RedirectToPage("/Index");
+        ////        }
+
+        ////        // 2. Създаване на дефолтен отбор
+        ////        var team = new Team
+        ////        {
+        ////            Name = "Временен отбор",
+        ////            CoachName = "Временен треньор",
+        ////            LogoUrl = "",
+        ////            FeePaid = false,
+        ////            UserId = user.Id
+        ////        };
+
+        ////        // 3. Създаване на заявка
+        ////        var request = new ManagerRequest
+        ////        {
+        ////            UserId = user.Id,
+        ////            TournamentType = Input.TournamentType.Value,
+        ////            TournamentId = tournament.Id,
+        ////            JsonPayload = $"{{ \"user\": \"{user.Email}\" }}",
+        ////            Status = RequestStatus.Pending,
+        ////            IsApproved = false
+        ////        };
+
+        ////        string message;
+
+        ////        try
+        ////        {
+        ////            // Първо добавяме отбор (за да има ID за заявката)
+        ////            context.Teams.Add(team);
+        ////            await context.SaveChangesAsync();
+
+        ////            // Свързваме заявката с току-що създадения отбор
+        ////            request.TeamId = team.Id;
+        ////            context.ManagerRequests.Add(request);
+        ////            await context.SaveChangesAsync();
+
+        ////            message = $"✅ Заявката за включване в турнира {Input.TournamentType} е приета.\nСлед превод на ХХХ лв. по сметка ###### в БАНКА, регистрирайте се отново с код: {user.UserName}";
+
+        ////            await smsSender.SendSmsAsync("+359885773102", message);
+
+        ////            TempData["Message"] = "Регистрацията е изпратена. Очаквайте одобрение по SMS.";
+
+        ////            return RedirectToPage("/Index");
+        ////        }
+        ////        catch (Exception ex)
+        ////        {
+        ////            message = $"❌ Регистрацията не бе успешна. Моля, опитайте отново.";
+
+        ////            TempData["Error"] = "Възникна проблем при записа. Моля, опитайте отново.";
+
+        ////            await smsSender.SendSmsAsync("+359885773102", message);
+
+        ////            return RedirectToPage("/Index");
+        ////        }
+        ////    }
+        ////    return RedirectToPage("/Index");
+        ////}
     }
 }

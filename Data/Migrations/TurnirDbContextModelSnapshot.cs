@@ -232,6 +232,9 @@ namespace Tournament.Data.Migrations
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TeamId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("TournamentId")
                         .HasColumnType("int");
 
@@ -245,6 +248,8 @@ namespace Tournament.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TeamId");
+
+                    b.HasIndex("TeamId1");
 
                     b.HasIndex("TournamentId");
 
@@ -350,6 +355,7 @@ namespace Tournament.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
@@ -382,10 +388,26 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 3,
-                            IsOpenForApplications = false,
+                            IsOpenForApplications = true,
                             Name = "Зимна купа",
                             StartDate = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            IsOpenForApplications = true,
+                            Name = "Есена купа",
+                            StartDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Type = 3
+                        },
+                        new
+                        {
+                            Id = 5,
+                            IsOpenForApplications = true,
+                            Name = "Шведска купа",
+                            StartDate = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Type = 4
                         });
                 });
 
@@ -580,6 +602,10 @@ namespace Tournament.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Tournament.Data.Models.Team", null)
+                        .WithMany("ManagerRequests")
+                        .HasForeignKey("TeamId1");
+
                     b.HasOne("Tournament.Data.Models.Tournament", "Tournament")
                         .WithMany()
                         .HasForeignKey("TournamentId")
@@ -602,19 +628,19 @@ namespace Tournament.Data.Migrations
             modelBuilder.Entity("Tournament.Data.Models.Match", b =>
                 {
                     b.HasOne("Tournament.Data.Models.Team", "TeamA")
-                        .WithMany()
+                        .WithMany("MatchesAsTeamA")
                         .HasForeignKey("TeamAId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Tournament.Data.Models.Team", "TeamB")
-                        .WithMany()
+                        .WithMany("MatchesAsTeamB")
                         .HasForeignKey("TeamBId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Tournament.Data.Models.Tournament", null)
-                        .WithMany()
+                    b.HasOne("Tournament.Data.Models.Tournament", "Tournament")
+                        .WithMany("Matches")
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -622,6 +648,8 @@ namespace Tournament.Data.Migrations
                     b.Navigation("TeamA");
 
                     b.Navigation("TeamB");
+
+                    b.Navigation("Tournament");
                 });
 
             modelBuilder.Entity("Tournament.Data.Models.Team", b =>
@@ -645,6 +673,20 @@ namespace Tournament.Data.Migrations
             modelBuilder.Entity("Tournament.Data.Models.Manager", b =>
                 {
                     b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("Tournament.Data.Models.Team", b =>
+                {
+                    b.Navigation("ManagerRequests");
+
+                    b.Navigation("MatchesAsTeamA");
+
+                    b.Navigation("MatchesAsTeamB");
+                });
+
+            modelBuilder.Entity("Tournament.Data.Models.Tournament", b =>
+                {
+                    b.Navigation("Matches");
                 });
 #pragma warning restore 612, 618
         }

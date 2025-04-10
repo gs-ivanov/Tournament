@@ -11,6 +11,7 @@
     using Tournament.Data;
     using Tournament.Data.Models;
     using Tournament.Models.Matches;
+    using Tournament.Models.TeamRanking;
     using Tournament.Services.MatchResultNotifire;
     using Tournament.Services.MatchScheduler;
 
@@ -33,38 +34,62 @@
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var matches = await _context.Matches.ToListAsync();
+            var matches = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .Include(m => m.Tournament)
+                .ToListAsync();
 
-            var teams = await _context.Teams.ToDictionaryAsync(t => t.Id, t => t.Name);
-
-            var model = matches.Select(m => new MatchViewModel
+            var anyScored = matches.Any(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
+            if (anyScored)
             {
-                Id = m.Id,
-                TeamAName = teams.ContainsKey(m.TeamAId) ? teams[m.TeamAId] : "???",
-                TeamBName = teams.ContainsKey(m.TeamBId) ? teams[m.TeamBId] : "???",
-                PlayedOn = (DateTime)m.PlayedOn,
-                ScoreA = m.ScoreA,
-                ScoreB = m.ScoreB
-            });
+                ViewBag.ShowRanking = anyScored;
+                ViewBag.TournamentId = matches.FirstOrDefault()?.TournamentId;
 
-            return View(model);
+                return View(matches);
+            }
+
+            TempData["Message"] = "Все още няма играни мачове.";
+
+            return RedirectToAction("Index", "Home");
+
+            //var matches = await _context.Matches.ToListAsync();
+
+            //var teams = await _context.Teams.ToDictionaryAsync(t => t.Id, t => t.Name);
+
+            //var model = matches.Select(m => new MatchViewModel
+            //{
+            //    Id = m.Id,
+            //    TeamAName = teams.ContainsKey(m.TeamAId) ? teams[m.TeamAId] : "???",
+            //    TeamBName = teams.ContainsKey(m.TeamBId) ? teams[m.TeamBId] : "???",
+            //    PlayedOn = (DateTime)m.PlayedOn,
+            //    ScoreA = m.ScoreA,
+            //    ScoreB = m.ScoreB
+            //});
+
+            //return View(model);
         }
 
         // GET: Matches/Create
         [Authorize(Roles = "Administrator")]
         public IActionResult Create()
         {
-            var model = new MatchFormModel
+            if (!_context.Teams.Any())
             {
-                PlayedOn = DateTime.Now,
-                Teams = _context.Teams.Select(t => new SelectListItem
+                var model = new MatchFormModel
                 {
-                    Value = t.Id.ToString(),
-                    Text = t.Name
-                })
-            };
+                    PlayedOn = DateTime.Now,
+                    Teams = (List<SelectListItem>)_context.Teams.Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    })
+                };
 
-            return View(model);
+                return View(model);
+            }
+
+            return View();
         }
 
         // POST: Matches/Create
@@ -75,7 +100,7 @@
         {
             if (!ModelState.IsValid)
             {
-                model.Teams = _context.Teams.Select(t => new SelectListItem
+                model.Teams = (List<SelectListItem>)_context.Teams.Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
                     Text = t.Name
@@ -86,7 +111,7 @@
             if (model.TeamAId == model.TeamBId)
             {
                 ModelState.AddModelError("", "Не можеш да избираш един и същ отбор два пъти.");
-                model.Teams = _context.Teams.Select(t => new SelectListItem
+                model.Teams = (List<SelectListItem>)_context.Teams.Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
                     Text = t.Name
@@ -174,27 +199,30 @@
             return RedirectToAction(nameof(Index));
         }
 
-
-
-        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        [Authorize(Roles = "Administrator,Editor")]
         public async Task<IActionResult> Edit(int id)
         {
             var match = await _context.Matches.FindAsync(id);
             if (match == null) return NotFound();
 
+            var teams = await _context.Teams
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToListAsync();
+
             var model = new MatchFormModel
             {
+                Id = match.Id,
                 TeamAId = match.TeamAId,
                 TeamBId = match.TeamBId,
-                PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB,
-                Teams = await _context.Teams
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.Id.ToString(),
-                        Text = t.Name
-                    }).ToListAsync()
+                PlayedOn = match.PlayedOn,
+                Teams = teams
             };
 
             return View(model);
@@ -202,7 +230,7 @@
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator,Editor")]
         public async Task<IActionResult> Edit(int id, MatchFormModel model)
         {
             if (!ModelState.IsValid)
@@ -212,42 +240,50 @@
                     {
                         Value = t.Id.ToString(),
                         Text = t.Name
-                    }).ToListAsync();
+                    })
+                    .ToListAsync();
+
+                return View(model);
+            }
+
+            if (model.TeamAId == model.TeamBId)
+            {
+                ModelState.AddModelError(string.Empty, "Отборите трябва да бъдат различни.");
+                model.Teams = await _context.Teams
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.Id.ToString(),
+                        Text = t.Name
+                    })
+                    .ToListAsync();
                 return View(model);
             }
 
             var match = await _context.Matches.FindAsync(id);
             if (match == null) return NotFound();
 
-            bool wasResultMissing = true;// !match.ScoreA.HasValue && !match.ScoreB.HasValue;
-            bool isNowFilled =  model.ScoreA.HasValue && model.ScoreB.HasValue;
-
-
             match.TeamAId = model.TeamAId;
             match.TeamBId = model.TeamBId;
-            match.PlayedOn = model.PlayedOn;
+            match.ScoreA = model.ScoreA;
+            match.ScoreB = model.ScoreB;
+            match.PlayedOn = model.PlayedOn ?? DateTime.UtcNow;
 
-            if (model.PlayedOn <= DateTime.Now)
-            {
-                match.ScoreA = model.ScoreA;
-                match.ScoreB = model.ScoreB;
-            }
-            else
-            {
-                match.ScoreA = null;
-                match.ScoreB = null;
-                TempData["Message"] = "Мачът е в бъдещето – резултатът ще бъде маркиран като 'Предстои'.";
-            }
-
-            _context.Matches.Update(match);
             await _context.SaveChangesAsync();
 
-            if (wasResultMissing && isNowFilled)
+            TempData["Message"] = "✅ Мачът е обновен успешно.";
+
+            // Проверка: Завършени ли са всички мачове от турнира?
+            var allCompleted = await _context.Matches
+                .Where(m => m.TournamentId == match.TournamentId)
+                .AllAsync(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
+
+            if (allCompleted)
             {
-                await _notifier.NotifyAsync(match.Id);
+                TempData["Message"] = "🏁 Всички мачове са завършени. Класиране е налично.";
+                return RedirectToAction("Ranking", new { tournamentId = match.TournamentId });
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         [Authorize(Roles = "Administrator")]
@@ -301,6 +337,67 @@
             return RedirectToAction("Index");
         }
 
+
+        [Authorize(Roles = "Administrator,Editor")]
+        public async Task<IActionResult> Ranking(int tournamentId)
+        {
+            var matches = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .Where(m => m.TournamentId == tournamentId && m.ScoreA.HasValue && m.ScoreB.HasValue)
+                .ToListAsync();
+
+            var teams = await _context.Teams.ToListAsync();
+            var rankings = teams
+                .Select(t => new TeamRankingViewModel { TeamName = t.Name })
+                .ToDictionary(r => r.TeamName);
+
+            foreach (var match in matches)
+            {
+                var teamA = match.TeamA.Name;
+                var teamB = match.TeamB.Name;
+                var scoreA = match.ScoreA.Value;
+                var scoreB = match.ScoreB.Value;
+
+                var a = rankings[teamA];
+                var b = rankings[teamB];
+
+                a.Played++;
+                b.Played++;
+
+                a.GoalsFor += scoreA;
+                a.GoalsAgainst += scoreB;
+
+                b.GoalsFor += scoreB;
+                b.GoalsAgainst += scoreA;
+
+                if (scoreA > scoreB)
+                {
+                    a.Wins++; a.Points += 3;
+                    b.Losses++;
+                }
+                else if (scoreA < scoreB)
+                {
+                    b.Wins++; b.Points += 3;
+                    a.Losses++;
+                }
+                else
+                {
+                    a.Draws++; b.Draws++;
+                    a.Points += 1; b.Points += 1;
+                }
+            }
+
+            var final = rankings.Values
+                .OrderByDescending(r => r.Points)
+                .ThenByDescending(r => r.GoalDifference)
+                .ThenByDescending(r => r.GoalsFor)
+                .ToList();
+
+            ViewBag.TournamentName = (await _context.Tournaments.FindAsync(tournamentId))?.Name;
+
+            return View(final);
+        }
         //[Authorize(Roles = "Administrator")]
         //public async Task<IActionResult> GenerateMatches()
         //{

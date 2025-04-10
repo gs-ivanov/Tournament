@@ -16,6 +16,15 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
+@if (ViewBag.ShowRanking == true)
+{
+    <a asp-action="Ranking" asp-route-tournamentId="@ViewBag.TournamentId" class="btn btn-outline-primary mb-3">
+        🏆 Виж класиране
+    </a>
+}
+
+
+
 @if (isAdmin)
 {
     <p>
@@ -40,14 +49,30 @@
                 <td>@match.TeamAName</td>
                 <td>@match.TeamBName</td>
                 <td>@match.PlayedOn.ToString("dd.MM.yyyy HH:mm")</td>
+                @*<td>
+                        @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
+                        {
+                            <strong>@match.ScoreA : @match.ScoreB</strong>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Предстои</span>
+                        }
+                    </td>*@
                 <td>
                     @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
                     {
-                        <strong>@match.ScoreA - @match.ScoreB</strong>
+                        @($"{match.ScoreA} : {match.ScoreB}")
                     }
                     else
                     {
-                        <span class="text-muted">Предстои</span>
+                        <span class="text-muted">Няма резултат</span>
+                    }
+                </td>
+                <td>
+                    @if (User.IsInRole("Administrator") || User.IsInRole("Editor"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-primary">✏️</a>
                     }
                 </td>
                 <td>
@@ -55,7 +80,7 @@
 
                     @if (isAdmin)
                     {
-                        <p>  
+                        <p>
                             <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
                             <a asp-action="GenerateMatches" class="btn btn-outline-success">Генерирай график</a>
                             <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редакция</a>
