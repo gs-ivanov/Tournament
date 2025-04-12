@@ -28,6 +28,13 @@
             builder.Entity<Ranking>().HasNoKey();
 
             builder.Entity<Team>()
+                .HasOne(t => t.Tournament)
+                .WithMany(t => t.Teams)
+                .HasForeignKey(t => t.TournamentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.Entity<Team>()
                 .Property(t => t.UserId)
                 .IsRequired(false); // 🟢 позволяваме null
 
@@ -70,6 +77,12 @@
             builder.Entity<Tournament>()
                 .Property(t => t.Type)
                 .HasConversion<int>();
+
+            builder.Entity<Tournament>()
+                .HasMany(t => t.Teams)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // Seed данни
             builder.Entity<Tournament>().HasData(

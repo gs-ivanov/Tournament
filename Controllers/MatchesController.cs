@@ -300,7 +300,7 @@
 
             if (teams.Count < 4)
             {
-                TempData["Error"] = "Нужни са поне 4 одобрени отбора за съставяне на график.";
+                TempData["Error"] = "Нужни са поне 4 одобрени отбора за съставяне на график. За проверка дали са одобрени виж /ManagerRequests/Index";
                 return RedirectToAction("Index");
             }
 

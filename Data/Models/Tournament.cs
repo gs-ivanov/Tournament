@@ -25,5 +25,8 @@
         public bool IsOpenForApplications { get; set; }
 
         public ICollection<Match> Matches { get; set; } = new List<Match>();
+
+        public ICollection<Team> Teams { get; set; } = new List<Team>();
+
     }
 }

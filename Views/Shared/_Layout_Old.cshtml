@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Tournament</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-success border-bottom shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand text-white fw-bold" asp-controller="Home" asp-action="Index">
+                    <img src="/logos/chernomore.png" alt="Logo" style="height: 40px;" />
+                    Tournament
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Matches" asp-action="Index">График на мачовете</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Teams" asp-action="Index">Списък с отборите</a>
+                        </li>
+
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="ManagerRequests" asp-action="Index">Заявки от мениджъри</a>
+                            </li>
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-danger"
+           href="#"
+           id="adminDropdown"
+           role="button"
+           data-bs-toggle="dropdown"
+           aria-expanded="false">
+            Админ меню
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+            <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Генерирай график</a></li>
+            <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
+            <li><a class="dropdown-item" asp-controller="Teams" asp-action="Reset">Изтриване на отбори</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateSchedule">Създаване на турнир – Всеки срещу всеки</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
+        </ul>
+    </li>
+    
+							@*
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-danger"
+           href="#"
+           id="adminDropdown"
+           role="button"
+           data-bs-toggle="dropdown"
+           aria-expanded="false">
+            Админ меню
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+            <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Генерирай график</a></li>
+            <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
+            <li><a class="dropdown-item" asp-controller="Teams" asp-action="Reset">Изтриване на отбори</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateSchedule">Създаване на турнир – Всеки срещу всеки</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
+            <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
+        </ul>
+    </li>
+    *@
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-controller="VerifyCode" asp-action="EnterCode">VerifyCode->EnterCode</a>
+                        </li>
+                        @if (User.IsInRole("Editor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="Teams" asp-action="Create">Добави отбор</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-controller="MyRequests" asp-action="Index">Моите заявки</a>
+                            </li>
+                        }
+                    </ul>
+
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success text-center mb-0 rounded-0">
+            @TempData["Message"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center mb-0 rounded-0">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (User.IsInRole("Administrator"))
+    {
+        <form asp-controller="Maintenance" asp-action="CleanTemporaryTeams" method="post" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-danger">🧹 Почисти служебни отбори</button>
+        </form>
+    }
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted mt-4">
+        <div class="container text-center">
+            &copy; 2025 - Tournament | <a asp-controller="Home" asp-action="Index">Начало</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

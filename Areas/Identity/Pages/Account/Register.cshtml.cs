@@ -161,10 +161,11 @@
                 var smsText = $"✅ Заявката ви за турнир \"Всеки срещу всеки\" е приета.\nСлед превод по IBAN: BG00XXXX00000000000000, въведете имейл {user.Email} на страницата за потвърждение.";
                 var phone = user.PhoneNumber ?? "+359885773102";
                 await smsSender.SendSmsAsync(phone, smsText);
+                TempData["Message"] = $"Изпратен СМС на телефонен нномер {phone}.";
             }
             else
             {
-                await userManager.AddToRoleAsync(user, "Fan");
+                //await userManager.AddToRoleAsync(user, "Fan");
             }
 
             await signInManager.SignInAsync(user, isPersistent: false);
