@@ -1,94 +1,40 @@
-﻿@model IEnumerable<MatchViewModel>
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
+﻿@model IEnumerable<Tournament.Data.Models.Match>
 
 @{
-    ViewData["Title"] = "Мачове";
-    var isAdmin = User.IsInRole("Administrator");
+    ViewData["Title"] = "Списък с мачове";
 }
 
-<h2 class="mt-3">Списък с мачове</h2>
+<h2>Списък с мачове</h2>
 
 @if (TempData["Message"] != null)
 {
-    <div class="alert alert-info">@TempData["Message"]</div>
-}
-
-@if (ViewBag.ShowRanking == true)
-{
-    <a asp-action="Ranking" asp-route-tournamentId="@ViewBag.TournamentId" class="btn btn-outline-primary mb-3">
-        🏆 Виж класиране
-    </a>
-}
-
-
-
-@if (isAdmin)
-{
-    <p>
-        <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
-    </p>
+<div class="alert alert-success">@TempData["Message"]</div>
 }
 
 <table class="table table-bordered table-striped">
-    <thead class="table-dark">
+    <thead>
         <tr>
+            <th>Турнир</th>
             <th>Отбор A</th>
             <th>Отбор B</th>
             <th>Дата</th>
             <th>Резултат</th>
-            <th>Действия</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var match in Model)
         {
-            <tr>
-                <td>@match.TeamAName</td>
-                <td>@match.TeamBName</td>
-                <td>@match.PlayedOn.ToString("dd.MM.yyyy HH:mm")</td>
-                @*<td>
-                        @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
-                        {
-                            <strong>@match.ScoreA : @match.ScoreB</strong>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Предстои</span>
-                        }
-                    </td>*@
-                <td>
-                    @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
-                    {
-                        @($"{match.ScoreA} : {match.ScoreB}")
-                    }
-                    else
-                    {
-                        <span class="text-muted">Няма резултат</span>
-                    }
-                </td>
-                <td>
-                    @if (User.IsInRole("Administrator") || User.IsInRole("Editor"))
-                    {
-                        <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-primary">✏️</a>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@match.Id" class="btn btn-sm btn-info">Детайли</a>
-
-                    @if (isAdmin)
-                    {
-                        <p>
-                            <a asp-action="Create" class="btn btn-primary">Създай нов мач</a>
-                            <a asp-action="GenerateMatches" class="btn btn-outline-success">Генерирай график</a>
-                            <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редакция</a>
-                            <a asp-action="Delete" asp-route-id="@match.Id" class="btn btn-sm btn-danger">Изтриване</a>
-                        </p>
-                    }
-                </td>
-            </tr>
+        <tr>
+            <td>@match.Tournament.Name</td>
+            <td>@match.TeamA.Name</td>
+            <td>@match.TeamB.Name</td>
+            <td>@match.PlayedOn.ToString("dd.MM.yyyy")</td>
+            <td>@match.ScoreTeamA : @match.ScoreTeamB</td>
+            <td>
+                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@match.Id">Редактирай резултат</a>
+            </td>
+        </tr>
         }
     </tbody>
 </table>

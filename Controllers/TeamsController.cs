@@ -206,10 +206,10 @@
             if (team == null)
                 return NotFound();
 
-            _context.Teams.Remove(team);
-            await _context.SaveChangesAsync();
+            //_context.Teams.Remove(team);
+            //await _context.SaveChangesAsync();
 
-            TempData["Message"] = $"Отборът \"{team.Name}\" беше изтрит.";
+            TempData["Message"] = $"Отборът \"{team.Name}\"не беше изтрит, а само за тест на функцията.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -227,7 +227,6 @@
         // POST: Teams/CreateMultiple
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // POST: Teams/CreateMultiple
         public async Task<IActionResult> CreateMultiple(TeamFormModel model)
         {
             if (!ModelState.IsValid)

@@ -27,21 +27,32 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-controller="Teams" asp-action="Index">Списък с отборите</a>
                         </li>
+                        @if (User.IsInRole("Editor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="VerifyCode" asp-action="EnterCode">Заявки от мениджъри</a>
+                            </li>
+                        }
                         @if (User.IsInRole("Administrator"))
                         {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Админ меню
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                        <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Генерирай график</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Teams" asp-action="Reset">Изтриване на отбори</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateSchedule">Създаване на турнир – Всеки срещу всеки</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
-                                    </ul>
-                                </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="ManagerRequests" asp-action="Index">Заявки за участие в турнир</a>
+                            </li>
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Админ меню
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="Index">Demo Edit/Create Tournir</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Generate RoundRobin Matches</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване (начално) на отбори</a></li>
+                                    <li><a class="dropdown-item" asp-controller="/Home" >Home - Spare</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
+                                </ul>
+                            </li>
                          }
                     </ul>
                     <partial name="_LoginPartial" />
@@ -49,7 +60,19 @@
             </div>
         </nav>
     </header>
-
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success text-center mb-0 rounded-0">
+            @TempData["Message"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center mb-0 rounded-0">
+            @TempData["Error"]
+        </div>
+    }
+    
     <div class="container mt-3">
         @RenderBody()
     </div>

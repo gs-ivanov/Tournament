@@ -18,6 +18,7 @@ namespace Tournament
     using Tournament.Services.MatchScheduler;
     using Tournament.Services.PDF;
     using Tournament.Services.Ranking;
+    using Tournament.Services.SignInManager;
     using Tournament.Services.Sms;
 
     public class Startup
@@ -68,6 +69,9 @@ namespace Tournament
                 .AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services
                 .AddTransient<PdfService>();
+            services
+                .AddScoped<SignInManager<User>, CustomSignInManager<User>>();
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

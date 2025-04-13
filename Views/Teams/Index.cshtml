@@ -22,7 +22,6 @@
             <th>Лого</th>
             <th>Име</th>
             <th>Треньор</th>
-            <th>Имейл</th>
             <th>Такса платена</th>
             <th></th>
         </tr>
@@ -34,25 +33,26 @@
                               !team.MatchesAsTeamB.Any() &&
                               !team.ManagerRequests.Any();
 
-            <tr>
-                <td>@team.Name</td>
-                <td>@team.CoachName</td>
-                <td>@team.FeePaid</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm">Редактирай</a>
+        <tr>
+            <td><a asp-controller="Teams" asp-action="Details" asp-route-id="@team.Id" class="btn btn-link btn-link"><img class="d-block w-100" src=@team.LogoUrl></a></td>
+            <td>@team.Name</td>
+            <td>@team.CoachName</td>
+            <td>@team.FeePaid</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm">Редактирай</a>
 
-                    @if (isDeletable)
-                    {
-                        <form asp-action="Delete" asp-route-id="@team.Id" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Изтрий</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <span class="text-muted">🔒 Не може да се изтрие</span>
-                    }
-                </td>
-            </tr>
+                @if (isDeletable)
+                {
+                    <form asp-action="Delete" asp-route-id="@team.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Изтрий</button>
+                    </form>
+                }
+                else
+                {
+                    <span class="text-muted">🔒 Не може да се изтрие</span>
+                }
+            </td>
+        </tr>
         }
         @*@foreach (var team in Model)
         {

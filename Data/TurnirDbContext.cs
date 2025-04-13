@@ -92,7 +92,7 @@
                     Name = "Пролетен турнир",
                     Type = TournamentType.Knockout,
                     StartDate = new DateTime(2025, 5, 10),
-                    IsOpenForApplications = true
+                    IsOpenForApplications = false
                 },
                 new Tournament
                 {
@@ -100,7 +100,7 @@
                     Name = "Летен шампионат",
                     Type = TournamentType.DoubleElimination,
                     StartDate = new DateTime(2025, 7, 1),
-                    IsOpenForApplications = true
+                    IsOpenForApplications = false
                 },
                 new Tournament
                 {
@@ -116,7 +116,7 @@
                     Name = "Есена купа",
                     Type = TournamentType.GroupAndKnockout,
                     StartDate = new DateTime(2025, 09, 5),
-                    IsOpenForApplications = true
+                    IsOpenForApplications = false
                 },
                 new Tournament
                 {
@@ -124,7 +124,7 @@
                     Name = "Шведска купа",
                     Type = TournamentType.Swiss,
                     StartDate = new DateTime(2025, 11, 5),
-                    IsOpenForApplications = true
+                    IsOpenForApplications = false
                 }
             );
         }

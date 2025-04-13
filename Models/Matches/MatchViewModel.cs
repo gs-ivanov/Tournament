@@ -8,11 +8,14 @@
     {
         public int Id { get; set; }
 
+        [Display(Name = "Tournament Id")]
+        public int TournamentId { get; set; }
+
         [Display(Name = "Отбор A")]
-        public string TeamAName { get; set; }
+        public string TeamA { get; set; }
 
         [Display(Name = "Отбор B")]
-        public string TeamBName { get; set; }
+        public string TeamB { get; set; }
 
         [Display(Name = "Дата на мача")]
         public DateTime PlayedOn { get; set; }

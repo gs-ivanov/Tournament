@@ -381,7 +381,7 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 1,
-                            IsOpenForApplications = true,
+                            IsOpenForApplications = false,
                             Name = "Пролетен турнир",
                             StartDate = new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 0
@@ -389,7 +389,7 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 2,
-                            IsOpenForApplications = true,
+                            IsOpenForApplications = false,
                             Name = "Летен шампионат",
                             StartDate = new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 1
@@ -405,7 +405,7 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 4,
-                            IsOpenForApplications = true,
+                            IsOpenForApplications = false,
                             Name = "Есена купа",
                             StartDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 3
@@ -413,7 +413,7 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 5,
-                            IsOpenForApplications = true,
+                            IsOpenForApplications = false,
                             Name = "Шведска купа",
                             StartDate = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Type = 4

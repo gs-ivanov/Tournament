@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Tournament.Data.Migrations
 {
-    public partial class CleanInitialTournament : Migration
+    public partial class RestartApp : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -215,7 +215,9 @@ namespace Tournament.Data.Migrations
                     CoachName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FeePaid = table.Column<bool>(type: "bit", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    TournamentId = table.Column<int>(type: "int", nullable: true),
+                    TournamentId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -225,7 +227,19 @@ namespace Tournament.Data.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Teams_Tournaments_TournamentId",
+                        column: x => x.TournamentId,
+                        principalTable: "Tournaments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Teams_Tournaments_TournamentId1",
+                        column: x => x.TournamentId1,
+                        principalTable: "Tournaments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -367,11 +381,11 @@ namespace Tournament.Data.Migrations
                 columns: new[] { "Id", "IsOpenForApplications", "Name", "StartDate", "Type" },
                 values: new object[,]
                 {
-                    { 1, true, "Пролетен турнир", new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 0 },
-                    { 2, true, "Летен шампионат", new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1 },
+                    { 1, false, "Пролетен турнир", new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), 0 },
+                    { 2, false, "Летен шампионат", new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 1 },
                     { 3, true, "Зимна купа", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 2 },
-                    { 4, true, "Есена купа", new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 3 },
-                    { 5, true, "Шведска купа", new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 4 }
+                    { 4, false, "Есена купа", new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 3 },
+                    { 5, false, "Шведска купа", new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), 4 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -464,6 +478,16 @@ namespace Tournament.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Teams_TournamentId",
+                table: "Teams",
+                column: "TournamentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Teams_TournamentId1",
+                table: "Teams",
+                column: "TournamentId1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Teams_UserId",
                 table: "Teams",
                 column: "UserId");
@@ -516,10 +540,10 @@ namespace Tournament.Data.Migrations
                 name: "Teams");
 
             migrationBuilder.DropTable(
-                name: "Tournaments");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Tournaments");
         }
     }
 }

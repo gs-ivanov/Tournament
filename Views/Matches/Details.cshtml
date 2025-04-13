@@ -14,10 +14,10 @@
 <div class="card p-4 shadow-sm bg-light">
     <dl class="row">
         <dt class="col-sm-3">Отбор A</dt>
-        <dd class="col-sm-9">@Model.TeamAName</dd>
+        <dd class="col-sm-9">@Model.TeamA</dd>
 
         <dt class="col-sm-3">Отбор B</dt>
-        <dd class="col-sm-9">@Model.TeamBName</dd>
+        <dd class="col-sm-9">@Model.TeamB</dd>
 
         <dt class="col-sm-3">Дата</dt>
         <dd class="col-sm-9">@Model.PlayedOn.ToString("dd.MM.yyyy HH:mm")</dd>
@@ -62,10 +62,11 @@
     }
     else
     {
-<div class="alert alert-info mt-4">
-    За да се абонирате, моля влезте в системата като Фен.
-    @*За да се абонирате, моля <a asp-controller="Account" asp-action="Login">влезте в системата като Фен.</a>.*@
-</div>
+        <div class="alert alert-info mt-4">
+            За да се абонирате, моля влезте в системата като Фен.
+            @*За да се абонирате, моля <a asp-controller="Account" asp-action="Login">влезте в системата като Фен.</a>.
+                                     <a asp-page="Login" asp-route-returnUrl="/">Register as a new user</a>*@
+        </div>
     }
 
 

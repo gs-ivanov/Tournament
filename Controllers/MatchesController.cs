@@ -30,44 +30,49 @@
             _matchScheduler = matchScheduler;
             _notifier = notifier;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var match = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (match == null)
+                return NotFound();
+
+            return View(match);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ScoreA,ScoreB")] Match updated)
+        {
+            var match = await _context.Matches.FindAsync(id);
+            if (match == null)
+                return NotFound();
+
+            match.ScoreA = updated.ScoreA;
+            match.ScoreB = updated.ScoreB;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Резултатът беше обновен.";
+            return RedirectToAction("Index");
+        }
+
         // GET: Matches
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var matches = await _context.Matches
-                .Include(m => m.TeamA)
-                .Include(m => m.TeamB)
-                .Include(m => m.Tournament)
-                .ToListAsync();
+                 .Include(m => m.TeamA)
+                 .Include(m => m.TeamB)
+                 .Include(m => m.Tournament)
+                 .ToListAsync();
 
-            var anyScored = matches.Any(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
-            if (anyScored)
-            {
-                ViewBag.ShowRanking = anyScored;
-                ViewBag.TournamentId = matches.FirstOrDefault()?.TournamentId;
-
-                return View(matches);
-            }
-
-            TempData["Message"] = "Все още няма играни мачове.";
-
-            return RedirectToAction("Index", "Home");
-
-            //var matches = await _context.Matches.ToListAsync();
-
-            //var teams = await _context.Teams.ToDictionaryAsync(t => t.Id, t => t.Name);
-
-            //var model = matches.Select(m => new MatchViewModel
-            //{
-            //    Id = m.Id,
-            //    TeamAName = teams.ContainsKey(m.TeamAId) ? teams[m.TeamAId] : "???",
-            //    TeamBName = teams.ContainsKey(m.TeamBId) ? teams[m.TeamBId] : "???",
-            //    PlayedOn = (DateTime)m.PlayedOn,
-            //    ScoreA = m.ScoreA,
-            //    ScoreB = m.ScoreB
-            //});
-
-            //return View(model);
+            return View(matches);
         }
 
         // GET: Matches/Create
@@ -153,8 +158,8 @@
             var model = new MatchViewModel
             {
                 Id = match.Id,
-                TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
-                TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
+                TeamA = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
+                TeamB = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
                 PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB
@@ -174,8 +179,8 @@
             var model = new MatchViewModel
             {
                 Id = match.Id,
-                TeamAName = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
-                TeamBName = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
+                TeamA = teams.ContainsKey(match.TeamAId) ? teams[match.TeamAId] : "???",
+                TeamB = teams.ContainsKey(match.TeamBId) ? teams[match.TeamBId] : "???",
                 PlayedOn = (DateTime)match.PlayedOn,
                 ScoreA = match.ScoreA,
                 ScoreB = match.ScoreB
@@ -199,141 +204,100 @@
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Administrator,Editor")]
-        public async Task<IActionResult> Edit(int id)
-        {
-            var match = await _context.Matches.FindAsync(id);
-            if (match == null) return NotFound();
+        //[HttpGet]
+        //[Authorize(Roles = "Administrator,Editor")]
+        //public async Task<IActionResult> Edit(int id)
+        //{
+        //    var match = await _context.Matches.FindAsync(id);
+        //    if (match == null) return NotFound();
 
-            var teams = await _context.Teams
-                .Select(t => new SelectListItem
-                {
-                    Value = t.Id.ToString(),
-                    Text = t.Name
-                })
-                .ToListAsync();
+        //    var teams = await _context.Teams
+        //        .Select(t => new SelectListItem
+        //        {
+        //            Value = t.Id.ToString(),
+        //            Text = t.Name
+        //        })
+        //        .ToListAsync();
 
-            var model = new MatchFormModel
-            {
-                Id = match.Id,
-                TeamAId = match.TeamAId,
-                TeamBId = match.TeamBId,
-                ScoreA = match.ScoreA,
-                ScoreB = match.ScoreB,
-                PlayedOn = match.PlayedOn,
-                Teams = teams
-            };
+        //    var model = new MatchFormModel
+        //    {
+        //        Id = match.Id,
+        //        TeamAId = match.TeamAId,
+        //        TeamBId = match.TeamBId,
+        //        ScoreA = match.ScoreA,
+        //        ScoreB = match.ScoreB,
+        //        PlayedOn = match.PlayedOn,
+        //        Teams = teams
+        //    };
 
-            return View(model);
-        }
+        //    return View(model);
+        //}
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrator,Editor")]
-        public async Task<IActionResult> Edit(int id, MatchFormModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                model.Teams = await _context.Teams
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.Id.ToString(),
-                        Text = t.Name
-                    })
-                    .ToListAsync();
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[Authorize(Roles = "Administrator,Editor")]
+        //public async Task<IActionResult> Edit(int id, MatchFormModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        model.Teams = await _context.Teams
+        //            .Select(t => new SelectListItem
+        //            {
+        //                Value = t.Id.ToString(),
+        //                Text = t.Name
+        //            })
+        //            .ToListAsync();
 
-                return View(model);
-            }
+        //        return View(model);
+        //    }
 
-            if (model.TeamAId == model.TeamBId)
-            {
-                ModelState.AddModelError(string.Empty, "Отборите трябва да бъдат различни.");
-                model.Teams = await _context.Teams
-                    .Select(t => new SelectListItem
-                    {
-                        Value = t.Id.ToString(),
-                        Text = t.Name
-                    })
-                    .ToListAsync();
-                return View(model);
-            }
+        //    if (model.TeamAId == model.TeamBId)
+        //    {
+        //        ModelState.AddModelError(string.Empty, "Отборите трябва да бъдат различни.");
+        //        model.Teams = await _context.Teams
+        //            .Select(t => new SelectListItem
+        //            {
+        //                Value = t.Id.ToString(),
+        //                Text = t.Name
+        //            })
+        //            .ToListAsync();
+        //        return View(model);
+        //    }
 
-            var match = await _context.Matches.FindAsync(id);
-            if (match == null) return NotFound();
+        //    var match = await _context.Matches.FindAsync(id);
+        //    if (match == null) return NotFound();
 
-            match.TeamAId = model.TeamAId;
-            match.TeamBId = model.TeamBId;
-            match.ScoreA = model.ScoreA;
-            match.ScoreB = model.ScoreB;
-            match.PlayedOn = model.PlayedOn ?? DateTime.UtcNow;
+        //    match.TeamAId = model.TeamAId;
+        //    match.TeamBId = model.TeamBId;
+        //    match.ScoreA = model.ScoreA;
+        //    match.ScoreB = model.ScoreB;
+        //    match.PlayedOn = model.PlayedOn ?? DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+        //    await _context.SaveChangesAsync();
 
-            TempData["Message"] = "✅ Мачът е обновен успешно.";
+        //    TempData["Message"] = "✅ Мачът е обновен успешно.";
 
-            // Проверка: Завършени ли са всички мачове от турнира?
-            var allCompleted = await _context.Matches
-                .Where(m => m.TournamentId == match.TournamentId)
-                .AllAsync(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
+        //    // Проверка: Завършени ли са всички мачове от турнира?
+        //    var allCompleted = await _context.Matches
+        //        .Where(m => m.TournamentId == match.TournamentId)
+        //        .AllAsync(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
 
-            if (allCompleted)
-            {
-                TempData["Message"] = "🏁 Всички мачове са завършени. Класиране е налично.";
-                return RedirectToAction("Ranking", new { tournamentId = match.TournamentId });
-            }
+        //    if (allCompleted)
+        //    {
+        //        TempData["Message"] = "🏁 Всички мачове са завършени. Класиране е налично.";
+        //        return RedirectToAction("Ranking", new { tournamentId = match.TournamentId });
+        //    }
 
-            return RedirectToAction("Index");
-        }
+        //    return RedirectToAction("Index");
+        //}
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GenerateSchedule(int tournamentId)
         {
             // Вземи одобрените отбори за турнира
-            var teams = await _context.Teams
-                .Where(t => _context.ManagerRequests.Any(r =>
-                    r.TeamId == t.Id &&
-                    r.TournamentId == tournamentId &&
-                    r.IsApproved &&
-                    r.FeePaid))
-                .ToListAsync();
 
-            if (teams.Count < 4)
-            {
-                TempData["Error"] = "Нужни са поне 4 одобрени отбора за съставяне на график. За проверка дали са одобрени виж /ManagerRequests/Index";
-                return RedirectToAction("Index");
-            }
 
-            // Проверка дали вече има срещи
-            bool hasMatches = await _context.Matches
-                .AnyAsync(m => m.TournamentId == tournamentId);
-
-            if (hasMatches)
-            {
-                TempData["Error"] = "Срещите за този турнир вече са генерирани.";
-                return RedirectToAction("Index");
-            }
-
-            // Генериране на мачове всеки срещу всеки
-            var matches = new List<Match>();
-
-            for (int i = 0; i < teams.Count; i++)
-            {
-                for (int j = i + 1; j < teams.Count; j++)
-                {
-                    matches.Add(new Match
-                    {
-                        TournamentId = tournamentId,
-                        TeamAId = teams[i].Id,
-                        TeamBId = teams[j].Id
-                    });
-                }
-            }
-
-            _context.Matches.AddRange(matches);
-            await _context.SaveChangesAsync();
-
-            TempData["Message"] = $"Генерирани са {matches.Count} мача.";
+            TempData["Message"] = $"Unused. See Generate RoundRobin Matches";
             return RedirectToAction("Index");
         }
 

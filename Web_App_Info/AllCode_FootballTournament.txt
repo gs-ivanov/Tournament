@@ -1,0 +1,83 @@
+﻿# Записваме целия генериран код в един .txt файл за преглед или архивиране
+full_code_text = """
+// ДОПЪЛНИТЕЛНО: ВИЗУАЛИЗАЦИЯ НА БРАКЕТ (ЕЛИМИНАЦИОННА СХЕМА)
+
+// Pages/Tournaments/Bracket.cshtml
+@page "{id:int}"
+@model BracketModel
+<h2>Схема на елиминации – @Model.Tournament?.Name</h2>
+@if (Model.Matches.Count == 0)
+{
+    <p>Няма мачове за визуализация.</p>
+}
+else
+{
+    <table>
+        <tr><th>Отбор A</th><th>Резултат</th><th>Отбор B</th></tr>
+        @foreach (var match in Model.Matches)
+        {
+            <tr>
+                <td>@Model.GetTeamName(match.TeamAId)</td>
+                <td>
+                    @(match.ScoreA.HasValue && match.ScoreB.HasValue
+                        ? $"{match.ScoreA} : {match.ScoreB}"
+                        : "–")
+                </td>
+                <td>@Model.GetTeamName(match.TeamBId)</td>
+            </tr>
+        }
+    </table>
+}
+
+// Pages/Tournaments/Bracket.cshtml.cs
+public class BracketModel : PageModel
+{
+    private readonly AppDbContext _context;
+    public Tournament Tournament { get; set; }
+    public List<Match> Matches { get; set; }
+
+    public BracketModel(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IActionResult> OnGetAsync(int id)
+    {
+        Tournament = await _context.Tournaments.FindAsync(id);
+        if (Tournament == null) return NotFound();
+
+        Matches = await _context.Matches
+            .Where(m => m.MatchDate >= Tournament.StartDate)
+            .OrderBy(m => m.MatchDate)
+            .ToListAsync();
+
+        return Page();
+    }
+
+    public string GetTeamName(int id) => _context.Teams.FirstOrDefault(t => t.Id == id)?.Name ?? "";
+}
+
+// Pages/Tournaments/List.cshtml
+@page
+@model TournamentListModel
+<h2>Списък с турнири</h2>
+<table>
+    <tr><th>Име</th><th>Тип</th><th>Начална дата</th><th>Действия</th></tr>
+    @foreach (var tournament in Model.Tournaments)
+    {
+        <tr>
+            <td>@tournament.Name</td>
+            <td>@tournament.Type</td>
+            <td>@tournament.StartDate.ToShortDateString()</td>
+            <td><a asp-page="/Tournaments/Bracket" asp-route-id="@tournament.Id">Виж схема</a></td>
+        </tr>
+    }
+</table>
+"""
+
+# Записваме файла
+output_path = "/mnt/data/FootballTournament_FullCode.txt"
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(full_code_text.strip())
+
+output_path

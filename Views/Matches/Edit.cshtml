@@ -1,38 +1,24 @@
-﻿@model Match
-
+﻿@using Tournament.Data.Models
+@model Match
 @{
     ViewData["Title"] = "Редакция на резултат";
 }
 
-<h2 class="mt-3">Редакция на резултат</h2>
+<h2>Редакция на резултат</h2>
 
-<div class="mb-3">
-    <strong>Мач:</strong> @Model.TeamA.Name vs @Model.TeamB.Name
-</div>
-
-<form asp-action="Edit" method="post">
+<form asp-action="Edit">
     <input type="hidden" asp-for="Id" />
 
-    <div class="row mb-3">
-        <div class="col">
-            <label asp-for="ScoreA" class="form-label">Резултат за @Model.TeamA.Name</label>
-            <input asp-for="ScoreA" class="form-control" type="number" min="0" />
-        </div>
-        <div class="col">
-            <label asp-for="ScoreB" class="form-label">Резултат за @Model.TeamB.Name</label>
-            <input asp-for="ScoreB" class="form-control" type="number" min="0" />
-        </div>
+    <div class="mb-3">
+        <label class="form-label">@Model.TeamA.Name</label>
+        <input asp-for="ScoreA" class="form-control" />
     </div>
 
     <div class="mb-3">
-        <label asp-for="PlayedOn" class="form-label">Дата на мача</label>
-        <input asp-for="PlayedOn" class="form-control" type="datetime-local" />
+        <label class="form-label">@Model.TeamB.Name</label>
+        <input asp-for="ScoreB" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Запиши</button>
+    <button type="submit" class="btn btn-success">Запиши резултата</button>
     <a asp-action="Index" class="btn btn-secondary">Назад</a>
 </form>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
