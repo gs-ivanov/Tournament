@@ -14,21 +14,27 @@
     using Tournament.Models.TeamRanking;
     using Tournament.Services.MatchResultNotifire;
     using Tournament.Services.MatchScheduler;
+    using Tournament.Services.Sms; // ако имаш ISmsSender
+
 
     public class MatchesController : Controller
     {
         private readonly TurnirDbContext _context;
         private readonly IMatchSchedulerService _matchScheduler;
         private readonly IMatchResultNotifierService _notifier;
+        private readonly ISmsSender _smsSender;
+
 
         public MatchesController(
             TurnirDbContext context,
             IMatchSchedulerService matchScheduler,
-            IMatchResultNotifierService notifier)
+            IMatchResultNotifierService notifier,
+            ISmsSender _smsSender)
         {
-            _context = context;
-            _matchScheduler = matchScheduler;
-            _notifier = notifier;
+            this._context = context;
+            this._matchScheduler = matchScheduler;
+            this._notifier = notifier;
+            this._smsSender = _smsSender;
         }
 
         [HttpGet]
@@ -44,12 +50,26 @@
 
             return View(match);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,ScoreA,ScoreB")] Match updated)
         {
-            var match = await _context.Matches.FindAsync(id);
+            if (!ModelState.IsValid)
+            {
+                var original = await _context.Matches
+                    .Include(m => m.TeamA)
+                    .Include(m => m.TeamB)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
+                return View(original);
+            }
+
+            // 🔄 Една заявка с Include
+            var match = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (match == null)
                 return NotFound();
 
@@ -59,9 +79,15 @@
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "Резултатът беше обновен.";
+
+            // 📢 SMS известие
+            await _smsSender.SendSmsAsync(
+                "+359885773102",
+                $"📢 Резултатът от мача {match.TeamA.Name} срещу {match.TeamB.Name} беше обновен: {match.ScoreA} : {match.ScoreB}."
+            );
+
             return RedirectToAction("Index");
         }
-
         // GET: Matches
         [AllowAnonymous]
         public async Task<IActionResult> Index()

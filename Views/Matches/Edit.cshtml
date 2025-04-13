@@ -9,16 +9,24 @@
 <form asp-action="Edit">
     <input type="hidden" asp-for="Id" />
 
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
     <div class="mb-3">
-        <label class="form-label">@Model.TeamA.Name</label>
+        <label class="form-label">@Model.TeamA?.Name</label>
         <input asp-for="ScoreA" class="form-control" />
+        <span asp-validation-for="ScoreA" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">@Model.TeamB.Name</label>
+        <label class="form-label">@Model.TeamB?.Name</label>
         <input asp-for="ScoreB" class="form-control" />
+        <span asp-validation-for="ScoreB" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-success">Запиши резултата</button>
     <a asp-action="Index" class="btn btn-secondary">Назад</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

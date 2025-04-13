@@ -1,6 +1,7 @@
 ﻿namespace Tournament.Data.Models
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     public class Match
     {
@@ -15,7 +16,10 @@
         public int TeamBId { get; set; }                  // ✅ Ясен FK
         public Team TeamB { get; set; }
 
+        [Range(0, 100)]
         public int? ScoreA { get; set; }
+
+        [Range(0, 100)]
         public int? ScoreB { get; set; }
 
         public DateTime? PlayedOn { get; set; }

@@ -42,7 +42,7 @@
                 }
                 else
                 {
-                    //await SendSmsAsync(sub.User.PhoneNumber, $"Резултат от мач: {match.ScoreA} - {match.ScoreB}");
+                    await SendSmsAsync(sub.User.PhoneNumber, $"Резултат от мач: {match.ScoreA} - {match.ScoreB}");
                 }
             }
 

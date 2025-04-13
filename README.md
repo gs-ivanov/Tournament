@@ -84,3 +84,16 @@ svaleno it Index.cshtml (View>Tournament)> @*MatchFormModel*@
 
 Или направо класиране?
 
+🔧 Финално: ако искаш тест без Twilio
+Twilio поддържа специален "тестов" номер и "тестов" AuthToken:
+
+FromNumber: +15005550006 ✅
+
+ToNumber: +15005550006
+
+Тяло: "Hello World"
+
+→ В този случай можеш да тестваш, без да използваш реален SMS.
+
+
+
