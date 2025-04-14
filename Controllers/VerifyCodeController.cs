@@ -1,23 +1,44 @@
 ﻿namespace Tournament.Controllers
 {
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Tournament.Data;
+    using Tournament.Models;
     using Tournament.Services.Sms;
+    using Twilio;
+    using Twilio.Rest.Api.V2010.Account;
+    using Twilio.Types;
 
     public class VerifyCodeController : Controller
     {
         private readonly TurnirDbContext _context;
         private readonly ISmsSender _smsSender;
+        private readonly TwilioSettings _twilioSettings;
 
-
-        public VerifyCodeController(TurnirDbContext context, ISmsSender smsSender)
+        public VerifyCodeController(TurnirDbContext context,
+            ISmsSender smsSender,
+            IOptions<TwilioSettings> twilioOptions
+            )
         {
-            _context = context;
-            _smsSender = smsSender;
+            this._twilioSettings = twilioOptions.Value;
+            this._context = context;
+            this._smsSender = smsSender;
+        }
+
+        public IActionResult MessageBox(string title, string message, string type = "info")
+        {
+            var model = new MessageBoxViewModel
+            {
+                Title = title,
+                Message = message,
+                Type = type
+            };
+
+            return View(model);
         }
 
         [HttpGet]
@@ -81,116 +102,43 @@
             {
                 TempData["Message"] = "Можеш да генерираш график с 4 отбора. Логвай се като админ и от падащо меню инициирай генерирането.";
             }
-            else
-            {
-                TempData["Message"] = "Участието е потвърдено.";
-            }
+                var message = $"✅ Номера на вносната бележка за превод по IBAN: BG00XXXX00000000000000 е приета.\nДобре дошъл и успешно представяне!";
+                TempData["Message"] = message;
 
-            // Изпращаме SMS
-            await _smsSender.SendSmsAsync("+359885773102", $"✅ Отборът {request.Team.Name} е включен в турнира {tournament.Name}.");
+                return RedirectToAction("Index", "Home");   
 
-            return RedirectToAction("Index", "Home");
+            //// Изпращаме SMS
+            //await _smsSender.SendSmsAsync("+359885773102", $"✅ Отборът {request.Team.Name} е включен в турнира {tournament.Name}.");
+
         }
 
-        //////    // Добавяме отбора към турнира, ако още не е
-        //////    var tournament = await _context.Tournaments
-        //////        .Include(t => t.Teams)
-        //////        .FirstOrDefaultAsync(t => t.Id == request.TournamentId);
+        [HttpGet]
+        public IActionResult TestSms()
+        {
+            try
+            {
+                TwilioClient.Init(_twilioSettings.AccountSid, _twilioSettings.AuthToken);
 
-        //////    if (tournament != null && !tournament.Teams.Any(t => t.Id == request.TeamId))
-        //////    {
-        //////        var team = await _context.Teams.FindAsync(request.TeamId);
-        //////        if (team != null)
-        //////        {
-        //////            tournament.Teams.Add(team);
-        //////        }
-        //////    }
+                var message = MessageResource.Create(
+                    body: "Hello World from Tournament (test mode)",
+                    from: new PhoneNumber(_twilioSettings.FromNumber),
+                    to: new PhoneNumber("+15005550006") // test recipient (Twilio test only)
+                );
 
-        //////    // Записваме промените
-        //////    await _context.SaveChangesAsync();
+                return Content($"✅ Тестово SMS съобщение изпратено! SID: {message.Sid}, Status: {message.Status}");
+            }
+            catch (Exception ex)
+            {
+                return Content($"❌ Грешка: {ex.Message}");
+            }
+        }
 
-        //////    // Проверка за 4 одобрени отбора за турнира
-        //////    var approvedCount = await _context.Teams
-        //////        .CountAsync(t => t.TournamentId == tournament.Id && t.IsApproved && t.FeePaid);
-
-        //////    if (approvedCount == 4)
-        //////    {
-        //////        TempData["Message"] = "Можеш да генерираш график с 4 отбора. Логвай се като админ и от падащо меню инициирай генерирането.";
-        //////    }
-        //////    else
-        //////    {
-        //////        TempData["Message"] = "Участието е потвърдено.";
-        //////    }
+        [HttpGet]
+        public IActionResult CheckTwilioConfig()
+        {
+            return Content($"SID: {_twilioSettings.AccountSid}, Token: {_twilioSettings.AuthToken}, From: {_twilioSettings.FromNumber}");
+        }
 
 
-
-        //[HttpGet]
-        ////[Authorize(Roles = "Editor")]
-        //public IActionResult EnterCode()
-        //{
-        //    //if (User.IsInRole("Administrator,Editor"))
-        //    //{
-        //    //    TempData["Error"] = "Managers only!!!!";
-        //    //}
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> EnterCode(string email, string receiptNumber)
-        //{
-        //    if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(receiptNumber))
-        //    {
-        //        TempData["Error"] = "Моля, попълнете всички полета.";
-        //        return View();
-        //    }
-
-        //    var user = await _context.Users
-        //        .FirstOrDefaultAsync(u => u.Email == email);
-
-        //    if (user == null)
-        //    {
-        //        TempData["Error"] = "Невалиден имейл.";
-        //        return View();
-        //    }
-        //    //*******************
-        //    var request = await _context.ManagerRequests
-        //        .Include(r => r.Team)
-        //        .FirstOrDefaultAsync(r => r.User.Email == email && !r.IsApproved);
-
-        //    if (request == null)
-        //    {
-        //        TempData["Error"] = "Няма чакаща заявка за този имейл.";
-        //        return RedirectToAction("EnterCode");
-        //    }
-
-        //    // Потвърждаваме заявката
-        //    request.IsApproved = true;
-        //    request.FeePaid = true;
-
-        //    // Добавяме отбора към турнира, ако още не е
-        //    var tournament = await _context.Tournaments
-        //        .Include(t => t.Teams)
-        //        .FirstOrDefaultAsync(t => t.Id == request.TournamentId);
-
-        //if (tournament != null && !tournament.Teams.Any(t => t.Id == request.TeamId))
-        //{
-        //    var team = await _context.Teams.FindAsync(request.TeamId);
-        //    if (team != null)
-        //    {
-        //        tournament.Teams.Add(team);
-        //    }
-        //    }
-
-        //    // Записваме промените
-        //    await _context.SaveChangesAsync();
-
-        //    // Изпращаме SMS (по избор)
-        //    await _smsSender.SendSmsAsync("+359885773102", $"✅ Отборът {request.Team.Name} е включен в турнира {tournament.Name}.");
-
-        //    // Потвърждение към потребителя
-        //    TempData["Message"] = "Участието е потвърдено.";
-        //    return RedirectToAction("Index", "Home");
-        //}
     }
 }

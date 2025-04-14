@@ -158,10 +158,19 @@
                 context.ManagerRequests.Add(request);
                 await context.SaveChangesAsync();
 
-                var smsText = $"✅ Заявката ви за турнир \"Всеки срещу всеки\" е приета.\nСлед превод по IBAN: BG00XXXX00000000000000, въведете имейл {user.Email} на страницата за потвърждение.";
-                var phone = user.PhoneNumber ?? "+359885773102";
-                await smsSender.SendSmsAsync(phone, smsText);
-                TempData["Message"] = $"Изпратен СМС на телефонен нномер {phone}.";
+                //var smsText = $"✅ Заявката ви за участие в турнир \"Всеки срещу всеки\" е приета.\nСлед превод по IBAN: BG00XXXX00000000000000, въведете имейл {user.Email} във формата за потвърждение.";
+                //var phone = user.PhoneNumber ?? "+359885773102";
+                //await smsSender.SendSmsAsync(phone, smsText);
+                //TempData["Message"] = $"Изпратен СМС на телефонен нномер {phone}.";
+
+                return RedirectToAction("MessageBox", "VerifyCode", new
+                {
+                    title = "Регистрацията е завършена",
+                    message= $"✅ Заявката ви за участие в турнир \"Всеки срещу всеки\" е приета.\nСлед превод по IBAN: BG00XXXX00000000000000, въведете имейл {user.Email} във формата за потвърждение.",
+                    type = "info"
+                //message = smsText "Заявката за мениджър е изпратена успешно. Ще получите код за регистрация на отбор след одобрение от администратор.",
+                });
+
             }
             else
             {

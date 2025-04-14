@@ -13,6 +13,7 @@ namespace Tournament
     using Tournament.Data;
     using Tournament.Data.Models;
     using Tournament.Infrastructure;
+    using Tournament.Models;
     using Tournament.Services.Email;
     using Tournament.Services.MatchResultNotifire;
     using Tournament.Services.MatchScheduler;
@@ -28,6 +29,20 @@ namespace Tournament
 
         public IConfiguration Configuration { get; }
 
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    var env = context.HostingEnvironment;
+
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                          .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
 
 
         public void ConfigureServices(IServiceCollection services)
@@ -71,6 +86,9 @@ namespace Tournament
                 .AddTransient<PdfService>();
             services
                 .AddScoped<SignInManager<User>, CustomSignInManager<User>>();
+            services
+                .Configure<TwilioSettings>(Configuration.GetSection("Twilio"));
+
 
         }
 
