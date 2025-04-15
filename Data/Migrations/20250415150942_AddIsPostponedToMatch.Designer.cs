@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tournament.Data;
 
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TurnirDbContext))]
-    partial class TurnirDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250415150942_AddIsPostponedToMatch")]
+    partial class AddIsPostponedToMatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -363,9 +365,6 @@ namespace Tournament.Data.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsOpenForApplications")
                         .HasColumnType("bit");
 
@@ -387,7 +386,6 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 1,
-                            IsActive = false,
                             IsOpenForApplications = false,
                             Name = "Пролетен турнир",
                             StartDate = new DateTime(2025, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -396,7 +394,6 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 2,
-                            IsActive = false,
                             IsOpenForApplications = false,
                             Name = "Летен шампионат",
                             StartDate = new DateTime(2025, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -405,7 +402,6 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 3,
-                            IsActive = false,
                             IsOpenForApplications = true,
                             Name = "Зимна купа",
                             StartDate = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -414,7 +410,6 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 4,
-                            IsActive = false,
                             IsOpenForApplications = false,
                             Name = "Есена купа",
                             StartDate = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -423,7 +418,6 @@ namespace Tournament.Data.Migrations
                         new
                         {
                             Id = 5,
-                            IsActive = false,
                             IsOpenForApplications = false,
                             Name = "Шведска купа",
                             StartDate = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),

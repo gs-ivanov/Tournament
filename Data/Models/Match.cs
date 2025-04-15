@@ -23,5 +23,6 @@
         public int? ScoreB { get; set; }
 
         public DateTime? PlayedOn { get; set; }
+        public bool IsPostponed { get; set; } = false;
     }
 }

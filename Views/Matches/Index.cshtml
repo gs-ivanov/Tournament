@@ -1,28 +1,48 @@
 ﻿@model IEnumerable<Match>
-
 @using static Tournament.WebConstants
 
 <h2>График на мачовете</h2>
 
 <h5 class="text-black-10 text-center table-warning"> @TempData[GlobalMessageKey]</h5>
 
-<table>
-    <thead>
+<table class="table table-bordered table-striped text-center">
+    <thead class="table-dark">
         <tr>
-            <th class="text-md-center">Дата</th>
-            <th class="text-md-center">Домакин</th>
-            <th class="text-md-center">Резултат</th>
-            <th class="text-md-center">Гост</th>
-            <th class="text-md-center">Действие</th>
+            <th>Дата</th>
+            <th>Домакин</th>
+            <th>Резултат</th>
+            <th>Гост</th>
+            <th>Действие</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var match in Model)
+        @{
+            int round = 1;
+            DateTime? lastDate = null;
+        }
+
+        @foreach (var match in Model.OrderBy(m => m.PlayedOn))
         {
-            <tr>
-                <td>@match.PlayedOn.ToString()</td>
+            if (lastDate == null || match.PlayedOn != lastDate)
+            {
+                <tr class="table-light fw-bold">
+                    <td colspan="5">Кръг @round – @match.PlayedOn?.ToString("dd.MM.yyyy")</td>
+                </tr>
+                round++;
+                lastDate = match.PlayedOn;
+            }
+
+             <tr>
+                <td>@match.PlayedOn?.ToString("dd.MM.yyyy")</td>
                 <td>@match.TeamA.Name</td>
-                <td class="text-md-center">@match.ScoreA : @match.ScoreB</td>
+                    @if (!match.IsPostponed)
+                    {
+                        <td><span class="badge bg-danger">Отложен</span></td>
+                    }
+                    else
+                    {
+                         <td>@match.ScoreA : @match.ScoreB</td>
+                    }
                 <td>@match.TeamB.Name</td>
                 <td>
                     @if (User.IsInRole("Editor"))
@@ -31,6 +51,6 @@
                     }
                 </td>
             </tr>
-        }
+         }
     </tbody>
 </table>

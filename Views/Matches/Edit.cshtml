@@ -4,29 +4,43 @@
     ViewData["Title"] = "Редакция на резултат";
 }
 
-<h2>Редакция на резултат</h2>
+<h2>@ViewData["Title"]</h2>
 
-<form asp-action="Edit">
-    <input type="hidden" asp-for="Id" />
+<hr />
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="Id" />
 
-    <div class="mb-3">
-        <label class="form-label">@Model.TeamA?.Name</label>
-        <input asp-for="ScoreA" class="form-control" />
-        <span asp-validation-for="ScoreA" class="text-danger"></span>
+            <div class="form-group mb-3">
+                <label>Домакин:</label>
+                <span class="form-control-plaintext fw-bold">@Model.TeamA?.Name</span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label>Гост:</label>
+                <span class="form-control-plaintext fw-bold">@Model.TeamB?.Name</span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ScoreA" class="control-label">Голове (домакин)</label>
+                <input asp-for="ScoreA" class="form-control" type="number" min="0" required />
+                <span asp-validation-for="ScoreA" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ScoreB" class="control-label">Голове (гост)</label>
+                <input asp-for="ScoreB" class="form-control" type="number" min="0" required />
+                <span asp-validation-for="ScoreB" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Запиши резултат</button>
+            <a asp-action="Index" class="btn btn-secondary">Отказ</a>
+        </form>
     </div>
-
-    <div class="mb-3">
-        <label class="form-label">@Model.TeamB?.Name</label>
-        <input asp-for="ScoreB" class="form-control" />
-        <span asp-validation-for="ScoreB" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-success">Запиши резултата</button>
-    <a asp-action="Index" class="btn btn-secondary">Назад</a>
-</form>
+</div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
