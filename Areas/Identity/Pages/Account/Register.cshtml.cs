@@ -79,7 +79,8 @@
             if (!context.Teams.Any())
             {
                 TempData["Error"] = "Няма записани отбори в БД. Изпълни URL команда /Teams/CreateMultiple за добаяне на отборите";
-                return RedirectToPage("/Index"); // или където искаш да го насочиш
+                //return RedirectToPage("/Index"); // или където искаш да го насочиш
+                return RedirectToPage("Teams/CreateMultiple"); // или където искаш да го насочиш
             }
 
             AvailableTeams = new SelectList(

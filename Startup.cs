@@ -57,6 +57,7 @@ namespace Tournament
             services
                 .AddDefaultIdentity<User>(options =>
                 {
+                    options.Password.RequiredLength = 3;
                     options.Password.RequireDigit = false;
                     options.Password.RequireLowercase = false;
                     options.Password.RequireNonAlphanumeric = false;

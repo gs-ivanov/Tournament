@@ -53,7 +53,7 @@
 
                     // Създаване на Администратор
                     const string adminEmail = "admin@tur.com";
-                    const string adminPassword = "admin12";
+                    const string adminPassword = "123";
 
                     var adminUser = await userManager.FindByEmailAsync(adminEmail);
                     if (adminUser == null)
@@ -71,7 +71,7 @@
 
                     // (Опционално) Създаване на Editor акаунт за тестове
                     const string editorEmail = "editor@tur.com";
-                    const string editorPassword = "editor12";
+                    const string editorPassword = "123";
 
                     var editorUser = await userManager.FindByEmailAsync(editorEmail);
                     if (editorUser == null)

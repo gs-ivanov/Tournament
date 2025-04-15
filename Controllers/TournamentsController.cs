@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
+    using Tournament.Models.Matches;
 
     public class TournamentsController : Controller
     {
@@ -21,11 +22,19 @@
 
         public async Task<IActionResult> Index()
         {
+            //var dataTournaments = this._context
+            //    .Tournaments
+            //    .Select(t => new MatchViewModel){
+
+            //}
             var tournaments = await _context.Tournaments
                 .Include(t => t.Matches) // ← това е важното за проверката "има мачове"
                 .ToListAsync();
 
-            return View(tournaments);
+            //return View(tournaments);  //ToDo
+            TempData["Message"] = "✅ Demo test for Commented  List/Edit of available tournaments /ToDo/.";
+            return RedirectToAction(nameof(Index),"Home");
+
         }
 
         [HttpGet]
@@ -121,6 +130,12 @@
         [Authorize(Roles = "Administrator")]
         public IActionResult SelectForSchedule()
         {
+            if (this._context.ManagerRequests.Count()<4)
+            {
+                TempData["Message"] = "Невъзможно създаване на турнир. Поне 4 отбора трябва да са одобрени за включване в турнир. Виж <Заявки за участие в турнири>";
+                return RedirectToAction(nameof(Index),"Home");
+            }
+
             var eligibleTournaments = _context.Tournaments
                 .Include(t => t.Teams)
                 .Where(t => t.Teams.Count == 4)
