@@ -18,8 +18,9 @@
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var rankings = await _rankingService.GetRankingsAsync();
-            return View(rankings);
+            //var rankings = await _rankingService.GetRankingsAsync();
+            //return View(rankings);
+            return View();
         }
     }
 }

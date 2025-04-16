@@ -71,8 +71,8 @@ namespace Tournament
                 options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             });
 
-            services
-                .AddTransient<IRankingService, RankingService>();
+            //services
+            //    .AddTransient<IRankingService, RankingService>();
             services
                 .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
             services

@@ -288,92 +288,6 @@
             return RedirectToAction(nameof(Index));
         }
 
-        //[HttpGet]
-        //[Authorize(Roles = "Administrator,Editor")]
-        //public async Task<IActionResult> Edit(int id)
-        //{
-        //    var match = await _context.Matches.FindAsync(id);
-        //    if (match == null) return NotFound();
-
-        //    var teams = await _context.Teams
-        //        .Select(t => new SelectListItem
-        //        {
-        //            Value = t.Id.ToString(),
-        //            Text = t.Name
-        //        })
-        //        .ToListAsync();
-
-        //    var model = new MatchFormModel
-        //    {
-        //        Id = match.Id,
-        //        TeamAId = match.TeamAId,
-        //        TeamBId = match.TeamBId,
-        //        ScoreA = match.ScoreA,
-        //        ScoreB = match.ScoreB,
-        //        PlayedOn = match.PlayedOn,
-        //        Teams = teams
-        //    };
-
-        //    return View(model);
-        //}
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //[Authorize(Roles = "Administrator,Editor")]
-        //public async Task<IActionResult> Edit(int id, MatchFormModel model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        model.Teams = await _context.Teams
-        //            .Select(t => new SelectListItem
-        //            {
-        //                Value = t.Id.ToString(),
-        //                Text = t.Name
-        //            })
-        //            .ToListAsync();
-
-        //        return View(model);
-        //    }
-
-        //    if (model.TeamAId == model.TeamBId)
-        //    {
-        //        ModelState.AddModelError(string.Empty, "Отборите трябва да бъдат различни.");
-        //        model.Teams = await _context.Teams
-        //            .Select(t => new SelectListItem
-        //            {
-        //                Value = t.Id.ToString(),
-        //                Text = t.Name
-        //            })
-        //            .ToListAsync();
-        //        return View(model);
-        //    }
-
-        //    var match = await _context.Matches.FindAsync(id);
-        //    if (match == null) return NotFound();
-
-        //    match.TeamAId = model.TeamAId;
-        //    match.TeamBId = model.TeamBId;
-        //    match.ScoreA = model.ScoreA;
-        //    match.ScoreB = model.ScoreB;
-        //    match.PlayedOn = model.PlayedOn ?? DateTime.UtcNow;
-
-        //    await _context.SaveChangesAsync();
-
-        //    TempData["Message"] = "✅ Мачът е обновен успешно.";
-
-        //    // Проверка: Завършени ли са всички мачове от турнира?
-        //    var allCompleted = await _context.Matches
-        //        .Where(m => m.TournamentId == match.TournamentId)
-        //        .AllAsync(m => m.ScoreA.HasValue && m.ScoreB.HasValue);
-
-        //    if (allCompleted)
-        //    {
-        //        TempData["Message"] = "🏁 Всички мачове са завършени. Класиране е налично.";
-        //        return RedirectToAction("Ranking", new { tournamentId = match.TournamentId });
-        //    }
-
-        //    return RedirectToAction("Index");
-        //}
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GenerateSchedule(int tournamentId)
@@ -480,7 +394,7 @@
             return rounds;
         }
 
-
+/**
         [Authorize(Roles = "Administrator,Editor")]
         public async Task<IActionResult> Ranking(int tournamentId)
         {
@@ -505,8 +419,8 @@
                 var a = rankings[teamA];
                 var b = rankings[teamB];
 
-                a.Played++;
-                b.Played++;
+                a.MatchesPlayed++;
+                b.MatchesPlayed++;
 
                 a.GoalsFor += scoreA;
                 a.GoalsAgainst += scoreB;
@@ -516,7 +430,7 @@
 
                 if (scoreA > scoreB)
                 {
-                    a.Wins++; a.Points += 3;
+                    a.Wins++; a.Points+=3;
                     b.Losses++;
                 }
                 else if (scoreA < scoreB)
@@ -541,16 +455,7 @@
 
             return View(final);
         }
-        //[Authorize(Roles = "Administrator")]
-        //public async Task<IActionResult> GenerateMatches()
-        //{
-        //    var startDate = DateTime.Today.AddDays(1);
-        //    int count = await _matchScheduler.GenerateScheduleAsync(startDate);
-
-        //    TempData["Message"] = $"Генерирани са {count} мача, започвайки от {startDate:dd.MM.yyyy}.";
-        //    return RedirectToAction("Index");
-        //}
-
+**/
     }
 
 }

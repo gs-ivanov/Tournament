@@ -1,7 +1,59 @@
-﻿@if (TempData["Message"] != null)
+﻿@model IEnumerable<TeamRankingViewModel>
+
+@if (TempData["Message"] != null)
 {
     <div class="alert alert-info" role="alert">
         @TempData["Message"]
     </div>
 }
 
+@if (Model.Any())
+{
+    <h3 class="mt-4 text-center">Класиране</h3>
+
+    <table class="table table-hover table-bordered text-center">
+        <thead class="table-primary">
+            <tr>
+                <th>#</th>
+                <th>Лого</th>
+                <th>Отбор</th>
+                <th title="Изиграни мачове">ИМ</th>
+                <th title="Победи">П</th>
+                <th title="Равенства">Р</th>
+                <th title="Загуби">З</th>
+                <th title="Голова разлика (вкарани минус допуснати)">ГР</th>
+                <th title="Точки">Т</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int position = 1;
+            }
+            @foreach (var team in Model)
+            {
+                string rowClass = position switch
+                {
+                    1 => "table-warning",
+                    2 => "table-secondary",
+                    3 => "table-orange",
+                    _ => ""
+                };
+                <tr class="@rowClass">
+                    <td>@position</td>
+                    <td>
+                        <img src="@team.LogoUrl" alt="лого" width="32" height="32"
+                             onerror="this.onerror=null; this.src='/logos/default.png';" />
+                    </td>
+                    <td class="text-start" title="Клик за повече информация">@team.TeamName</td>
+                    <td>@team.MatchesPlayed</td>
+                    <td>@team.Wins</td>
+                    <td>@team.Draws</td>
+                    <td>@team.Losses</td>
+                    <td>@(team.GoalDifference >= 0 ? "+" : "")@team.GoalDifference</td>
+                    <td><strong>@team.Points</strong></td>
+                </tr>
+                position++;
+            }
+        </tbody>
+    </table>
+}
