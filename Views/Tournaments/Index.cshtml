@@ -1,39 +1,52 @@
-@using Tournament.Data.Models
-@model IEnumerable<Match>
+﻿@model IEnumerable<Tournament>
 
-@{
-    ViewData["Title"] = "Списък с мачове";
-}
-
-<h2>Списък с мачове</h2>
+<h2>Всички турнири</h2>
 
 @if (TempData["Message"] != null)
 {
-    <div class="alert alert-success">@TempData["Message"]</div>
+    <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>Име</th>
             <th>Тип</th>
             <th>Начална дата</th>
             <th>Активен</th>
-            <th>Отворен за заявки</th> <!-- 🆕 -->
+            <th>Отворен за заявки</th>
             <th>Действие</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var match in Model)
+        @foreach (var t in Model)
         {
             <tr>
-                <td>@match.Tournament?.Name</td>
-                <td>@match.TeamA?.Name</td>
-                <td>@match.TeamB?.Name</td>
-                <td>@match.PlayedOn.ToString()</td>
-                <td>@match.ScoreA : @match.ScoreB</td>
+                <td>@t.Name</td>
+                <td>@t.Type</td>
+                <td>@t.StartDate.ToString("dd.MM.yyyy")</td>
                 <td>
-                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@match.Id">Редактирай резултат</a>
+                    @if (t.IsActive)
+                    {
+                        <span class="badge bg-success">Активен</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">–</span>
+                    }
+                </td>
+                <td>
+                    @if (t.IsOpenForApplications)
+                    {
+                        <span class="badge bg-primary">🟢 Отворен</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">🔒 Затворен</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@t.Id" class="btn btn-primary btn-sm">Редактирай</a>
                 </td>
             </tr>
         }

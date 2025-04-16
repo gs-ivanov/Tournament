@@ -35,7 +35,6 @@
             }
             return View(tournament);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
@@ -51,22 +50,35 @@
             if (tournament == null)
                 return NotFound();
 
+            // Променям текущия турнир
+            tournament.Name = updated.Name;
             tournament.StartDate = updated.StartDate;
+            tournament.IsActive = updated.IsActive;
 
-            var allTournaments = await _context.Tournaments.ToListAsync();
-            foreach (var t in allTournaments)
+            // Обвързваме логически: ако е активен → заявки = true, иначе false
+            tournament.IsOpenForApplications = updated.IsActive;
+
+            // Ако активираме този турнир, всички останали стават неактивни и затворени
+            if (updated.IsActive)
             {
-                t.IsActive = (t.Id == tournament.Id);
-                //t.IsOpenForApplications = (t.Id == tournament.Id);
+                var others = await _context.Tournaments
+                    .Where(t => t.Id != updated.Id)
+                    .ToListAsync();
+
+                foreach (var t in others)
+                {
+                    t.IsActive = false;
+                    t.IsOpenForApplications = false;
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = "✅ Турнирът беше обновен.";
+            TempData["Message"] = "✅ Турнирът беше успешно обновен.";
             return RedirectToAction("Index");
         }
 
-    [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator")]
         public IActionResult SelectForSchedule()
         {
             int tournamentId = 3;

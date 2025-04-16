@@ -32,20 +32,13 @@
                 lastDate = match.PlayedOn;
             }
 
-             <tr>
+            <tr>
                 <td>@match.PlayedOn?.ToString("dd.MM.yyyy")</td>
-                <td>@match.TeamA.Name</td>
-                    @if (!match.IsPostponed)
-                    {
-                        <td><span class="badge bg-danger">Отложен</span></td>
-                    }
-                    else
-                    {
-                         <td>@match.ScoreA : @match.ScoreB</td>
-                    }
-                <td>@match.TeamB.Name</td>
+                <td>@match.TeamA?.Name</td>
+                <td>@match.ScoreA : @match.ScoreB</td>
+                <td>@match.TeamB?.Name</td>
                 <td>
-                    @if (User.IsInRole("Editor"))
+                    @if (User.IsInRole("Editor") && match.ScoreA==null&& match.ScoreB ==null)
                     {
                         <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-warning btn-sm">Редактирай</a>
                     }

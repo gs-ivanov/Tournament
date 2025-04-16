@@ -1,15 +1,7 @@
-﻿
-<form asp-controller="Matches" asp-action="GenerateSchedule" method="post">
-    <input type="hidden" name="tournamentId" value="2" /> @*@tournamentId*@
-    <button type="submit" class="btn btn-primary">
-        🎯 Генерирай график (всеки срещу всеки)
-    </button>
-</form>
-@if (TempData["Message"] != null)
+﻿@if (TempData["Message"] != null)
 {
     <div class="alert alert-info" role="alert">
         @TempData["Message"]
     </div>
 }
-<h1>Hi!!!</h1>
 

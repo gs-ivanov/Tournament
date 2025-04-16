@@ -23,3 +23,37 @@ public IActionResult Edit(int id)
             this.data.SaveChanges();
 ****************
            
+           MAPVANE
+                   [HttpGet]
+        [Authorize(Roles = "Editor")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var match = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (match == null)
+                return NotFound();
+
+            var teams = await _context.Teams
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToListAsync();
+
+            var model = new MatchFormModel
+            {
+                Id = match.Id,
+                TeamAId = match.TeamAId,
+                TeamBId = match.TeamBId,
+                PlayedOn = match.PlayedOn,
+                ScoreA = match.ScoreA,
+                ScoreB = match.ScoreB,
+                Teams = teams
+            };
+
+            return View(model);
+        }
