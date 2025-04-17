@@ -163,15 +163,8 @@
                 //var phone = user.PhoneNumber ?? "+359885773102";
                 //await smsSender.SendSmsAsync(phone, smsText);
                 //TempData["Message"] = $"Изпратен СМС на телефонен нномер {phone}.";
-
-                return RedirectToAction("MessageBox", "VerifyCode", new
-                {
-                    title = "Регистрацията е завършена",
-                    message= $"✅ Заявката ви за участие в турнир \"Всеки срещу всеки\" е приета.\nСлед превод по IBAN: BG00XXXX00000000000000, въведете имейл {user.Email} във формата за потвърждение.",
-                    type = "info"
-                //message = smsText "Заявката за мениджър е изпратена успешно. Ще получите код за регистрация на отбор след одобрение от администратор.",
-                });
-
+                TempData["Message"] = "✅ Регистрацията е завършена. Ще получите код за одобрение от администратор.";
+                return RedirectToAction("Index", "Home");
             }
             else
             {

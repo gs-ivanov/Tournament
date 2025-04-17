@@ -4,14 +4,15 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 
-@*@{
-    var userName = UserManager.Users.Select(e=>e.);
-    var x = userName.em;
-    string[] y = x.Split(" ");
-    Console.WriteLine(y[0]);
-
+@{
+    string displayName = "";
+    if (User.Identity.IsAuthenticated)
+    {
+        var email = User.Identity.Name;
+        var prefix = email.Split('@')[0];
+        displayName = char.ToUpper(prefix[0]) + prefix.Substring(1);
+    }
 }
-<h1>@y[0]</h1>*@
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
@@ -19,11 +20,11 @@
 
         <li class="nav-item">
             <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Manage/Index">
-                👋  @User.DisplayRole()
+                👋 @displayName
             </a>
         </li>
         <li class="nav-item">
-            <span class="nav-link text-light">@User.DisplayRole()</span>
+            <span class="nav-link text-light">@displayName</span>
         </li>
         <li class="nav-item">
             <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">

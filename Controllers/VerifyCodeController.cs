@@ -29,18 +29,6 @@
             this._smsSender = smsSender;
         }
 
-        public IActionResult MessageBox(string title, string message, string type = "info")
-        {
-            var model = new MessageBoxViewModel
-            {
-                Title = title,
-                Message = message,
-                Type = type
-            };
-
-            return View(model);
-        }
-
         [HttpGet]
         public IActionResult EnterCode()
         {
@@ -98,9 +86,9 @@
             await _context.SaveChangesAsync();
 
             // ✅ Проверка за точно 4 отбора, свързани с турнира
-            if (tournament.Teams.Count == 4)
+            if (tournament.Teams.Count == 4 || tournament.Teams.Count%2==0)
             {
-                TempData["Message"] = "Можеш да генерираш график с 4 отбора. Логвай се като админ и от падащо меню инициирай генерирането.";
+                TempData["Message"] = $"Можеш да генерираш график с {tournament.Teams.Count} отбора. Логвай се като админ и от падащо меню инициирай генерирането.";
             }
                 var message = $"✅ Номера на вносната бележка за превод по IBAN: BG00XXXX00000000000000 е приета.\nДобре дошъл и успешно представяне!";
                 TempData["Message"] = message;
