@@ -7,7 +7,5 @@
     {
         [MaxLength(40)]
         public string FullName { get; set; }
-
-        public bool IsManager { get; set; }
     }
 }
