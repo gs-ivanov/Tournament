@@ -26,32 +26,31 @@
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-controller="Teams" asp-action="Index">Списък с отборите</a>
                         </li>
-                        @if (User.IsInRole("Editor"))
+                        @if (User.IsInRole("Editor") && User.Identity.Name.ToLower() != "editor@tur.com")
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-warning" asp-controller="VerifyCode" asp-action="EnterCode">Заявки от мениджъри</a>
-                            </li>
-                        }
+                            </li>}
                         @if (User.IsInRole("Administrator"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-warning" asp-controller="ManagerRequests" asp-action="Index">Заявки за участие в турнир</a>
-                            </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" asp-controller="ManagerRequests" asp-action="Index">Заявки за участие в турнир</a>
+                        </li>
 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Админ меню
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" asp-controller="SetUp" asp-action="Step1" >Setup Wizarf</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Tournaments">Tournaments Edit/List(ToDo - edit)</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Generate RoundRobin Matches</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване (начално) на отбори</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
-                                </ul>
-                            </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Админ меню
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" asp-controller="SetUp" asp-action="Step1">Setup Wizarf</a></li>
+                                <li><a class="dropdown-item" asp-controller="Tournaments">Tournaments Edit/List(ToDo - edit)</a></li>
+                                <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="SelectForSchedule">Generate RoundRobin Matches</a></li>
+                                <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване на списък с отбори</a></li>
+                                <li><a class="dropdown-item" asp-controller="Teams" asp-action="CreateMultiple">Създаване (начално) на отбори</a></li>
+                                <li><a class="dropdown-item" asp-controller="Matches" asp-action="GenerateKnockoutMatches">Създаване на елиминация</a></li>
+                                <li><a class="dropdown-item" asp-controller="Matches" asp-action="Reset">Нулиране на турнири</a></li>
+                            </ul>
+                        </li>
                          }
                     </ul>
                     <partial name="_LoginPartial" />
