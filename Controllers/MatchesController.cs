@@ -116,6 +116,16 @@
 
             if (match == null)
                 return NotFound();
+
+            var tournament = await _context.Tournaments.FindAsync(match.TournamentId);
+            if (tournament == null) return NotFound();
+
+            if (tournament.Type == TournamentType.Knockout && updated.ScoreA == updated.ScoreB)
+            {
+                TempData["Message"] = "Равенство не е позволено в елиминационен турнир!";
+                return RedirectToAction("Edit", new { id = match.Id });
+            }
+
             var now = DateTime.Now;
 
             var postponedMatches = _context.Matches

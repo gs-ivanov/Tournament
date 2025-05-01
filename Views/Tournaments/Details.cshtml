@@ -4,6 +4,17 @@
 <p>Тип: @Model.Type</p>
 <p>Начална дата: @Model.StartDate.ToShortDateString()</p>
 
+@{
+    var финаленМач = Model.Matches.FirstOrDefault(m => m.IsFinal && m.ScoreA.HasValue && m.ScoreB.HasValue);
+    if (финаленМач != null)
+    {
+        var победител = финаленМач.ScoreA > финаленМач.ScoreB
+            ? финаленМач.TeamA?.Name
+            : финаленМач.TeamB?.Name;
+        <h4 class="text-success">🏆 Победител: @победител</h4>
+    }
+}
+
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-info mt-2">@TempData["Message"]</div>
@@ -41,7 +52,7 @@
                 <td>
                     @if (User.IsInRole("Editor") && !match.ScoreA.HasValue && !match.ScoreB.HasValue)
                     {
-                        <a asp-controller="Matches" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
+                        <a asp-controller="Match" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
                     }
                     @if (match.IsFinal)
                     {
