@@ -34,6 +34,16 @@
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
+            var currid = _context
+                .Tournaments
+                .Where(t => t.IsActive)
+                .FirstOrDefault();
+
+            if (id==0)
+            {
+                id =currid.Id;
+            }
+
             var tournament = await _context.Tournaments
                 .Include(t => t.Matches)
                     .ThenInclude(m => m.TeamA)

@@ -41,8 +41,7 @@
                 <td>
                     @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
                     {
-                        @match.ScoreA
-                        @match.ScoreB
+                        <h5>@match.ScoreA : @match.ScoreB</h5>
                     }
                     else
                     {
@@ -52,7 +51,7 @@
                 <td>
                     @if (User.IsInRole("Editor") && !match.ScoreA.HasValue && !match.ScoreB.HasValue)
                     {
-                        <a asp-controller="Match" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
+                        <a asp-controller="Matches" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
                     }
                     @if (match.IsFinal)
                     {
@@ -71,10 +70,3 @@
 <form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model.Id" method="post">
     <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг</button>
 </form>
-
-// 📄 File: Controllers/MatchController.cs (при запис на резултат)
-if (tournament.Type == TournamentType.Knockout && model.ScoreA == model.ScoreB)
-{
-    TempData["Message"] = "Равенство не е позволено в елиминационен турнир!";
-    return RedirectToAction("Edit", new { id = match.Id });
-}
