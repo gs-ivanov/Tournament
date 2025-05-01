@@ -31,12 +31,20 @@
             return View(tournaments);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            TempData["Error"] = "✅ Новият график ne беше успешно генериран.";
-            //return RedirectToAction("Index", "Matches");
+            var tournament = await _context.Tournaments
+                .Include(t => t.Matches)
+                    .ThenInclude(m => m.TeamA)
+                .Include(t => t.Matches)
+                    .ThenInclude(m => m.TeamB)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-            return View(new List<int> { id });
+            if (tournament == null)
+                return NotFound();
+
+            return View(tournament);
         }
 
         [Authorize(Roles = "Administrator")]
@@ -222,20 +230,20 @@
         }
 
         // 📄 File: Controllers/TournamentsController.cs
+        // 📄 File: Controllers/TournamentsController.cs
         [HttpPost]
-        //public async Task<IActionResult> GenerateNextKnockoutRound(int tournamentId)
-        public IActionResult GenerateNextKnockoutRound(int tournamentId)
+        public async Task<IActionResult> GenerateNextKnockoutRound(int tournamentId)
         {
-            var tournament =  _context.Tournaments.Find(tournamentId);
+            var tournament = await _context.Tournaments.FindAsync(tournamentId);
             if (tournament == null) return NotFound();
 
             var allMatches = _context.Matches
                 .Where(m => m.TournamentId == tournamentId)
                 .ToList();
 
-            DateTime lastDate = (DateTime)(allMatches.Any()
+            var lastDate = allMatches.Any()
                 ? allMatches.Max(m => m.PlayedOn)
-                : tournament.StartDate);
+                : tournament.StartDate;
 
             var latestRoundDate = allMatches.Max(m => m.PlayedOn);
             var lastRoundMatches = allMatches.Where(m => m.PlayedOn == latestRoundDate).ToList();
@@ -257,12 +265,12 @@
             if (winners.Count == 1)
             {
                 TempData["Message"] = "Турнирът приключи. Победител е: " +
-                    ( _context.Teams.Find(winners[0])).Name;
+                    (await _context.Teams.FindAsync(winners[0])).Name;
                 return RedirectToAction("Details", new { id = tournamentId });
             }
 
             var shuffled = winners.OrderBy(x => Guid.NewGuid()).ToList();
-            var newMatches = new List<Data.Models.Match>();
+            var newMatches = new List<Match>();
 
             for (int i = 0; i < shuffled.Count; i += 2)
             {
@@ -271,14 +279,14 @@
                     TournamentId = tournamentId,
                     TeamAId = shuffled[i],
                     TeamBId = shuffled[i + 1],
-                    PlayedOn = lastDate.AddDays(7),
+                    PlayedOn = lastDate.Value.AddDays(7),
                     IsFinal = (shuffled.Count == 2)
                 };
                 newMatches.Add(match);
             }
 
             _context.Matches.AddRange(newMatches);
-             _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             TempData["Message"] = shuffled.Count == 2
                 ? "Генериран е ФИНАЛ на турнира."
@@ -287,12 +295,6 @@
             return RedirectToAction("Details", new { id = tournamentId });
         }
 
-
-        //    private bool IsPowerOfTwo(int number)
-        //    {
-        //        return number > 1 && (number & (number - 1)) == 0;
-        //    }
-        //}
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GenerateFinal(int tournamentId)

@@ -1,10 +1,69 @@
-﻿@model List<int>
+﻿@model Tournament
 
-<form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model[0]" method="post">
-    <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг</button>
-</form>
+<h2>Турнир: @Model.Name</h2>
+<p>Тип: @Model.Type</p>
+<p>Начална дата: @Model.StartDate.ToShortDateString()</p>
 
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-info mt-2">@TempData["Message"]</div>
+}
+
+<h4>Срещи</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Отбор A</th>
+            <th>Отбор B</th>
+            <th>Дата</th>
+            <th>Резултат</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var match in Model.Matches.OrderBy(m => m.PlayedOn))
+        {
+            <tr>
+                <td>@match.TeamA?.Name</td>
+                <td>@match.TeamB?.Name</td>
+                <td>@match.PlayedOn.Value.ToShortDateString()</td>
+                <td>
+                    @if (match.ScoreA.HasValue && match.ScoreB.HasValue)
+                    {
+                        @match.ScoreA
+                        @match.ScoreB
+                    }
+                    else
+                    {
+                        <em>неизигран</em>
+                    }
+                </td>
+                <td>
+                    @if (User.IsInRole("Editor") && !match.ScoreA.HasValue && !match.ScoreB.HasValue)
+                    {
+                        <a asp-controller="Matches" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
+                    }
+                    @if (match.IsFinal)
+                    {
+                        <span class="badge bg-success">Финал</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Полуфинал</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model.Id" method="post">
+    <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг</button>
+</form>
+
+// 📄 File: Controllers/MatchController.cs (при запис на резултат)
+if (tournament.Type == TournamentType.Knockout && model.ScoreA == model.ScoreB)
+{
+    TempData["Message"] = "Равенство не е позволено в елиминационен турнир!";
+    return RedirectToAction("Edit", new { id = match.Id });
 }

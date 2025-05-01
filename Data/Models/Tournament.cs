@@ -30,5 +30,7 @@
 
         public bool IsActive { get; set; } // 🆕 Добавяме това
 
+        public ICollection<Match> Matches { get; set; } = new List<Match>();
+
     }
 }
