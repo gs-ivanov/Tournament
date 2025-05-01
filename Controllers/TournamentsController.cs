@@ -31,6 +31,14 @@
             return View(tournaments);
         }
 
+        public async Task<IActionResult> Details(int id)
+        {
+            TempData["Error"] = "✅ Новият график ne беше успешно генериран.";
+            //return RedirectToAction("Index", "Matches");
+
+            return View(new List<int> { id });
+        }
+
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id)
         {
@@ -85,14 +93,14 @@
                     t.TournamentId = updated.Id;
                 }
 
-                var managerReqs=_context.ManagerRequests
-                    .Where(m=>m.IsApproved && m.FeePaid)
+                var managerReqs = _context.ManagerRequests
+                    .Where(m => m.IsApproved && m.FeePaid)
                     .ToList();
 
                 foreach (var m in managerReqs)
                 {
                     m.TournamentId = updated.Id;
-                    m.TournamentType= updated.Type;
+                    m.TournamentType = updated.Type;
                 }
 
             }
@@ -158,7 +166,7 @@
 
             // 🔴 Изтриваме всички стари мачове за този турнир
             var existingMatches = await _context.Matches
-                .Where(m => m.Id>0)
+                .Where(m => m.Id > 0)
                 //.Where(m => m.TournamentId == tournamentId)
                 .ToListAsync();
 
@@ -175,21 +183,116 @@
                 .Where(t => approvedTeams.Contains(t.Id))
                 .ToListAsync();
 
-            if (teams.Count < 2)
+            if (teams.Count < 4)
             {
                 TempData["Message"] = "Няма достатъчно отбори за създаване на график.";
                 return RedirectToAction("Index");
             }
 
-            // 🟢 Генерираме нов график чрез MatchScheduler
-            var matches = _matchScheduler.GenerateSchedule(teams, tournament);
-
-            _context.Matches.AddRange(matches);
-            await _context.SaveChangesAsync();
+            try
+            {
+                // 🟢 Генерираме нов график чрез MatchScheduler
+                var matches = _matchScheduler.GenerateSchedule(teams, tournament);
+                _context.Matches.AddRange(matches);
+                await _context.SaveChangesAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Details", new { id = tournament.Id });
+            }
 
             TempData["Message"] = "✅ Новият график беше успешно генериран.";
-            return RedirectToAction("Index", "Matches");
+            return RedirectToAction("Details", new { id = tournament.Id });
+            //return RedirectToAction("Index", "Matches");
         }
+
+        [HttpPost]
+        public IActionResult Test(int tournamentId)
+        {
+            try
+            {
+                TempData["uuu"] = 9999;
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = ex.Message; return RedirectToAction("Error", new { id = tournamentId });
+            }
+            return View();
+        }
+
+        // 📄 File: Controllers/TournamentsController.cs
+        [HttpPost]
+        //public async Task<IActionResult> GenerateNextKnockoutRound(int tournamentId)
+        public IActionResult GenerateNextKnockoutRound(int tournamentId)
+        {
+            var tournament =  _context.Tournaments.Find(tournamentId);
+            if (tournament == null) return NotFound();
+
+            var allMatches = _context.Matches
+                .Where(m => m.TournamentId == tournamentId)
+                .ToList();
+
+            DateTime lastDate = (DateTime)(allMatches.Any()
+                ? allMatches.Max(m => m.PlayedOn)
+                : tournament.StartDate);
+
+            var latestRoundDate = allMatches.Max(m => m.PlayedOn);
+            var lastRoundMatches = allMatches.Where(m => m.PlayedOn == latestRoundDate).ToList();
+
+            var winners = new List<int>();
+            foreach (var match in lastRoundMatches)
+            {
+                if (match.ScoreA > match.ScoreB)
+                    winners.Add(match.TeamAId);
+                else if (match.ScoreB > match.ScoreA)
+                    winners.Add(match.TeamBId);
+                else
+                {
+                    TempData["Message"] = $"Мач между {match.TeamA?.Name} и {match.TeamB?.Name} няма победител. Равенствата не са позволени.";
+                    return RedirectToAction("Details", new { id = tournamentId });
+                }
+            }
+
+            if (winners.Count == 1)
+            {
+                TempData["Message"] = "Турнирът приключи. Победител е: " +
+                    ( _context.Teams.Find(winners[0])).Name;
+                return RedirectToAction("Details", new { id = tournamentId });
+            }
+
+            var shuffled = winners.OrderBy(x => Guid.NewGuid()).ToList();
+            var newMatches = new List<Data.Models.Match>();
+
+            for (int i = 0; i < shuffled.Count; i += 2)
+            {
+                var match = new Match
+                {
+                    TournamentId = tournamentId,
+                    TeamAId = shuffled[i],
+                    TeamBId = shuffled[i + 1],
+                    PlayedOn = lastDate.AddDays(7),
+                    IsFinal = (shuffled.Count == 2)
+                };
+                newMatches.Add(match);
+            }
+
+            _context.Matches.AddRange(newMatches);
+             _context.SaveChangesAsync();
+
+            TempData["Message"] = shuffled.Count == 2
+                ? "Генериран е ФИНАЛ на турнира."
+                : "Създаден е следващ елиминационен кръг.";
+
+            return RedirectToAction("Details", new { id = tournamentId });
+        }
+
+
+        //    private bool IsPowerOfTwo(int number)
+        //    {
+        //        return number > 1 && (number & (number - 1)) == 0;
+        //    }
+        //}
 
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GenerateFinal(int tournamentId)

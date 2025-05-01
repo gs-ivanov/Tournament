@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using Tournament.Data;
     using Tournament.Data.Models;
+    using Tournament.Models;
     using Tournament.Models.Matches;
     using Tournament.Services.MatchScheduler;
 
@@ -160,6 +161,15 @@
             match.ScoreB = updated.ScoreB;
 
             await _context.SaveChangesAsync();
+
+            ////01042025 📄 File: Controllers/MatchController.cs (при запис на резултат)
+            //if (tournament.Type == TournamentType.Knockout && model.ScoreA == model.ScoreB)
+            //{
+            //    TempData["Message"] = "Равенство не е позволено в елиминационен турнир!";
+            //    return RedirectToAction("Edit", new { id = match.Id });
+            //}
+
+
 
             TempData["Message"] = "✅ Резултатът беше успешно записан.";
 

@@ -1,0 +1,10 @@
+﻿@model List<int>
+
+<form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model[0]" method="post">
+    <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг</button>
+</form>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info mt-2">@TempData["Message"]</div>
+}
