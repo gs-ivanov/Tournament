@@ -17,7 +17,8 @@ namespace Tournament
     using Tournament.Services.MatchScheduler;
     using Tournament.Services.PDF;
     using Tournament.Services.SignInManager;
-
+    using Tournament.Services.Credentials.Email;
+    using Tournament.Services.Credentials.Sms;
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -73,8 +74,10 @@ namespace Tournament
                 .AddTransient<IMatchGenerator, KnockoutScheduler>();
             services
                 .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
-            //services
-            //    .AddTransient<IEmailSender, EmailSender>();
+			services
+                .AddTransient<IEmailSender, EmailSender>();
+            services
+                .AddTransient<ISmsSender, TwilioSmsSender>();
             services
                 .AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
             services
