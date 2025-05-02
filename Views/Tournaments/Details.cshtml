@@ -21,9 +21,9 @@
 }
 
 <h4>Срещи</h4>
-<table class="table">
+<table class="table table-bordered text-center table-striped">
     <thead>
-        <tr>
+        <tr class="bs-popover-auto text-center">
             <th>Отбор A</th>
             <th>Отбор B</th>
             <th>Дата</th>
@@ -32,10 +32,21 @@
         </tr>
     </thead>
     <tbody>
-
-
+        @{
+            int round = 1;
+            DateTime? lastDate = null;
+        }
         @foreach (var match in Model.Matches.OrderBy(m => m.PlayedOn))
         {
+            if (lastDate == null || match.PlayedOn != lastDate)
+            {
+                <tr class="table-light fw-bold text-center">
+                    <td colspan="5">Кръг @round – @match.PlayedOn?.ToString("dd.MM.yyyy")</td>
+                </tr>
+                round++;
+                lastDate = match.PlayedOn;
+            }
+
             <tr>
                 <td>@match.TeamA?.Name</td>
                 <td>@match.TeamB?.Name</td>

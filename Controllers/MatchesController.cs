@@ -42,7 +42,7 @@
             if (matches.Count < 2)
             {
                 TempData["Message"] = "Не са налични достатъчно полуфинали за създаване на финал.";
-                return RedirectToAction("Index");
+               return RedirectToAction("Details","Tournaments");
             }
 
             var semi1 = matches[0];
@@ -52,7 +52,7 @@
             if (semi1.ScoreA == null || semi1.ScoreB == null || semi2.ScoreA == null || semi2.ScoreB == null)
             {
                 TempData["Message"] = "Трябва първо да бъдат въведени резултатите от полуфиналите.";
-                return RedirectToAction("Index");
+               return RedirectToAction("Details","Tournaments");
             }
 
             // Определяме победителите
@@ -76,7 +76,7 @@
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "✅ Финалът беше успешно създаден!";
-            return RedirectToAction("Index");
+           return RedirectToAction("Details","Tournaments");
         }
         //*************
 
@@ -149,7 +149,7 @@
             if (previousUnplayed)
             {
                 TempData["Message"] = "❌ Не може да въведете резултат за този мач, докато има неизиграни мачове от предишни кръгове.";
-                return RedirectToAction("Index");
+               return RedirectToAction("Details","Tournaments");
             }
 
 
@@ -157,14 +157,14 @@
             if (match.ScoreA.HasValue || match.ScoreB.HasValue)
             {
                 TempData["Message"] = "❌ Резултат вече е въведен и не може да бъде редактиран.";
-                return RedirectToAction("Index");
+               return RedirectToAction("Details","Tournaments");
             }
 
             // 🔒 Забрана ако мачът не е изигран още
             if (match.PlayedOn > DateTime.Now)
             {
                 TempData["Message"] = $"❌ Мачът още не е изигран. Днес е {now}, а мача е насрочен за {match.PlayedOn}. Не може да въведете резултат.";
-                return RedirectToAction("Index");
+               return RedirectToAction("Details","Tournaments");
             }
 
             match.ScoreA = updated.ScoreA;
@@ -191,52 +191,43 @@
             //    $"📢 Резултат от {match.TeamA.Name} срещу {match.TeamB.Name}: {match.ScoreA}:{match.ScoreB}"
             //);
 
-
-            return RedirectToAction("Index");
+            
+            return RedirectToAction("Details","Tournaments");
         }
 
 
-        // GET: Matches
-        [AllowAnonymous]
-        public async Task<IActionResult> Index()
-        {
-            //if ((String)TempData["NonDisplay"] != "Yes")
+        //// GET: Matches
+        //[AllowAnonymous]
+        //public async Task<IActionResult> Index()
+        //{
+            //var now = DateTime.Now;
+
+            //var matches = await _context.Matches
+            //    .Include(m => m.TeamA)
+            //    .Include(m => m.TeamB)
+            //    .OrderBy(m => m.PlayedOn)
+            //    .ToListAsync();
+
+            //// 🔁 Обновяване на отложени
+            //foreach (var match in matches)
             //{
-            var now = DateTime.Now;
-
-            var matches = await _context.Matches
-                .Include(m => m.TeamA)
-                .Include(m => m.TeamB)
-                .OrderBy(m => m.PlayedOn)
-                .ToListAsync();
-
-            // 🔁 Обновяване на отложени
-            foreach (var match in matches)
-            {
-                if (match.PlayedOn < now && match.ScoreA == null && match.ScoreB == null)
-                {
-                    match.IsPostponed = true;
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            var tourType = this._context
-                .Tournaments
-                .Where(t => t.IsActive == true)
-                .Select(t => t.Name)
-                .FirstOrDefault();
-
-            ViewData["TournamentType"] = tourType;
-            return View(matches);
-            //}
-            //else
-            //{
-            //    TempData["NoDisplay"] = "Все още няма създаден График?!";
-            //    return RedirectToAction("Index", "Home");
+            //    if (match.PlayedOn < now && match.ScoreA == null && match.ScoreB == null)
+            //    {
+            //        match.IsPostponed = true;
+            //    }
             //}
 
-        }
+            //await _context.SaveChangesAsync();
+
+            //var tourType = this._context
+            //    .Tournaments
+            //    .Where(t => t.IsActive == true)
+            //    .Select(t => t.Name)
+            //    .FirstOrDefault();
+
+            //ViewData["TournamentType"] = tourType;
+            //return View(matches);
+        //}
 
         // GET: Matches/Create
         [Authorize(Roles = "Administrator")]
