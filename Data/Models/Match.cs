@@ -29,5 +29,7 @@
 
         public bool IsFinal { get; set; } = false;
 
+        public int Round { get; set; } // Номер на кръга
+        public string Bracket { get; set; } // "Winners" или "Losers"
     }
 }

@@ -4,10 +4,12 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Tournament.Data;
+    using Tournament.Data.Models;
     using Tournament.Models;
 
     [Authorize(Roles = "Administrator")]
@@ -20,22 +22,55 @@
             _context = context;
         }
 
+        //public async Task<IActionResult> Index(string status = "Pending")
+        //{
+        //    if (status == "ToPending")
+        //    {
+        //        ViewData["CurrentStatus"] = status;
+        //        return RedirectToAction(nameof(RevertList));
+        //    }
+        //    // Опитваме се да преобразуваме подадения низ в стойност от изброимия тип RequestStatus
+        //    if (!Enum.TryParse<RequestStatus>(status, out var parsedStatus))
+        //    {
+        //        // Ако преобразуването не е успешно, връщаме празен списък
+        //        ViewData["CurrentStatus"] = status;
+        //        return View(new List<ManagerRequest>());
+        //    }
+
+        //    // Извличаме заявки от базата данни със съответния статус
+        //    var requests = await _context.ManagerRequests
+        //        .Where(r => r.Status == parsedStatus)
+        //        .ToListAsync();
+
+        //    // Предаваме текущия статус към изгледа
+        //    ViewData["CurrentStatus"] = status;
+        //    return View(requests);
+        //}
+
         [HttpGet]
         public async Task<IActionResult> Index(string status = "Pending")
         {
+            if (status == "ToPending")
+            {
+                ViewData["CurrentStatus"] = status;
+                return RedirectToAction(nameof(RevertList));
+            }
+
             var query = _context.ManagerRequests
                     .Include(r => r.Team)
                     .Include(r => r.User)
                     .AsQueryable();
 
-                if (Enum.TryParse<RequestStatus>(status, out var parsedStatus))
-                {
-                    query = query.Where(r => r.Status == parsedStatus);
-                }
+            if (Enum.TryParse<RequestStatus>(status, out var parsedStatus))
+            {
+                query = query.Where(r => r.Status == parsedStatus);
+            }
 
-                ViewData["CurrentStatus"] = status;
+            ViewData["CurrentStatus"] = status;
             return View(await query.ToListAsync());
         }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -67,6 +102,31 @@
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> RevertList()
+        {
+            var query = _context.ManagerRequests
+                .Include(r => r.Team)
+                .Include(r => r.User)
+                .AsQueryable();
+
+            var status = "Approved";
+
+            if (Enum.TryParse<RequestStatus>(status, out var parsedStatus))
+            {
+                query = query.Where(r => r.Status == parsedStatus);
+            }
+
+
+
+            var approvedRequests = await _context.ManagerRequests
+                .Where(r => r.Status == RequestStatus.Approved)
+                .ToListAsync();
+
+            return View(approvedRequests);
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id)
@@ -85,6 +145,25 @@
 
             TempData["Message"] = $"❌ Заявката от {request.User.FullName} за отбор '{request.Team.Name}' беше отхвърлена.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RevertToPending(int id)
+        {
+            var request = await _context.ManagerRequests.FindAsync(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            request.Status = RequestStatus.Pending;
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "Заявката беше върната към чакащи.";
+            
+      
+            
+            return RedirectToAction(nameof(RevertList));
         }
 
         public static string GenerateJson(string email, TournamentType tournamentType)

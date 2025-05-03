@@ -62,11 +62,11 @@
                     }
                 </td>
                 <td>
-                    @if (User.IsInRole("Editor") && !match.ScoreA.HasValue && !match.ScoreB.HasValue)
+@*                     @if (User.IsInRole("Editor") && !match.ScoreA.HasValue && !match.ScoreB.HasValue)
                     {
-                        <a asp-controller="Matches" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
-                    }
-                    @if (match.IsFinal)
+ *@                        <a asp-controller="Matches" asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-warning">Редактирай</a>
+@*                     }
+ *@                    @if (match.IsFinal)
                     {
                         <span class="badge bg-success">Финал</span>
                     }
@@ -80,6 +80,18 @@
     </tbody>
 </table>
 
-<form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model.Id" method="post">
-    <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг</button>
-</form>
+@if ((string)ViewData["IsFinal"]=="Final")
+{
+    @if (Model.Id==5)
+    {
+        <form asp-action="GenerateNextKnockoutRound" asp-route-tournamentId="@Model.Id" method="post">
+            <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг: Knockout</button>
+        </form>
+    }
+    @if (Model.Id == 4)
+    {
+        <form asp-action="GenerateNextDoubleEliminationRound" asp-route-tournamentId="@Model.Id" method="post">
+            <button type="submit" class="btn btn-outline-primary mt-3">Следващ кръг: Double</button>
+        </form>
+    }
+}

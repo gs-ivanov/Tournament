@@ -70,7 +70,11 @@
             </div>
         </nav>
     </header>
-
+    @if (TempData["TournDetails"] != null)
+    {
+        <div class="alert alert-success">@TempData["TournDetails"]</div>
+        <span class="d-none">@TempData["TournDetails"]=null</span>
+    }
     @if (TempData["Register"] != null)
     {
         <div class="alert alert-success">@TempData["Register"]</div>

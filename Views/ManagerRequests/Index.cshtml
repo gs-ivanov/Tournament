@@ -20,7 +20,8 @@
 <div class="btn-group mb-3" role="group">
     <a asp-action="Index" asp-route-status="Pending" class="btn btn-outline-primary @(currentStatus == "Pending" ? "active" : "")">Чакащи</a>
     <a asp-action="Index" asp-route-status="Approved" class="btn btn-outline-success @(currentStatus == "Approved" ? "active" : "")">Одобрени</a>
-    <a asp-action="Index" asp-route-status="Rejected" class="btn btn-outline-danger @(currentStatus == "Rejected" ? "active" : "")">Отхвърлени</a>
+@*     <a asp-action="Index" asp-route-status="Rejected" class="btn btn-outline-danger @(currentStatus == "Rejected" ? "active" : "")">Отхвърлени</a>
+ *@    <a asp-action="Index" asp-route-status="ToPending" class="btn btn-outline-danger @(currentStatus == "ToPending" ? "active" : "")">Към чакащи</a>
 </div>
 
 <table class="table table-bordered table-hover">
@@ -31,7 +32,7 @@
             <th>Тип турнир</th>
             <th>Дата на заявка</th>
             <th>Статус</th>
-            @if (currentStatus == "Pending")
+            @if (currentStatus == "Pending" || currentStatus == "Reject")
             {
                 <th>Действия</th>
             }
@@ -52,10 +53,15 @@
                         <form asp-action="Approve" asp-route-id="@request.Id" method="post" class="d-inline">
                             <button type="submit" class="btn btn-success btn-sm">✅ Одобри</button>
                         </form>
-@*                         <form asp-action="Reject" asp-route-id="@request.Id" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm">❌ Отхвърли</button>
+                    </td>
+                }
+                @if (currentStatus == "Reject")
+                {
+                    <td>
+                        <form asp-action="Approve" asp-route-id="@request.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm">✅ Одобри</button>
                         </form>
- *@                    </td>
+                    </td>
                 }
             </tr>
         }

@@ -39,9 +39,9 @@
                 .Where(t => t.IsActive)
                 .FirstOrDefault();
 
-            if (id==0)
+            if (id == 0)
             {
-                id =currid.Id;
+                id = currid.Id;
             }
 
             var tournament = await _context.Tournaments
@@ -53,6 +53,27 @@
 
             if (tournament == null)
                 return NotFound();
+
+            var totalMatchesCount = _context.Matches.Count();
+
+            var lastUpdatedCount = _context
+                .Matches
+                .Where(m => m.ScoreA != null)
+                .Count();
+
+            var isFinal = _context
+                .Matches
+                .Where(m => m.IsFinal)
+                .FirstOrDefault();
+
+            if (totalMatchesCount == lastUpdatedCount && isFinal==null)
+            {
+                ViewData["IsFinal"] = "Final";
+            }
+            else
+            {
+                ViewData["IsFinal"] = "";
+            }
 
             return View(tournament);
         }
@@ -290,6 +311,66 @@
                     TeamAId = shuffled[i],
                     TeamBId = shuffled[i + 1],
                     PlayedOn = lastDate.Value.AddDays(7),
+                    IsFinal = (shuffled.Count == 2)
+                };
+                newMatches.Add(match);
+            }
+
+            _context.Matches.AddRange(newMatches);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = shuffled.Count == 2
+                ? "Генериран е ФИНАЛ на турнира."
+                : "Създаден е следващ елиминационен кръг.";
+
+            return RedirectToAction("Details", new { id = tournamentId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GenerateNextDoubleEliminationRound(int tournamentId)
+        {
+            var tournament = await _context.Tournaments.FindAsync(tournamentId);
+            if (tournament == null) return NotFound();
+
+            var allMatches = _context.Matches
+                .Where(m => m.TournamentId == tournamentId)
+                .ToList();
+
+            var latestRoundDate = allMatches.Max(m => m.PlayedOn);
+            var lastRoundMatches = allMatches.Where(m => m.PlayedOn == latestRoundDate).ToList();
+
+            var winners = new List<int>();
+            foreach (var match in lastRoundMatches)
+            {
+                if (match.ScoreA > match.ScoreB)
+                    winners.Add(match.TeamAId);
+                else if (match.ScoreB > match.ScoreA)
+                    winners.Add(match.TeamBId);
+                else
+                {
+                    TempData["Message"] = $"Мач между {match.TeamA?.Name} и {match.TeamB?.Name} няма победител. Равенствата не са позволени.";
+                    return RedirectToAction("Details", new { id = tournamentId });
+                }
+            }
+
+            if (winners.Count == 1)
+            {
+                TempData["Message"] = "Турнирът приключи. Победител е: " +
+                    (await _context.Teams.FindAsync(winners[0])).Name;
+                return RedirectToAction("Details", new { id = tournamentId });
+            }
+
+            var shuffled = winners.OrderBy(x => Guid.NewGuid()).ToList();
+            var newMatches = new List<Match>();
+
+            for (int i = 0; i < shuffled.Count; i += 2)
+            {
+                var match = new Match
+                {
+                    TournamentId = tournamentId,
+                    TeamAId = shuffled[i],
+                    TeamBId = shuffled[i + 1],
+                    PlayedOn = latestRoundDate.Value.AddDays(7),
                     IsFinal = (shuffled.Count == 2)
                 };
                 newMatches.Add(match);
