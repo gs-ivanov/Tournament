@@ -18,7 +18,7 @@
                 TournamentType.Swiss => new SwissScheduler(),
                 _ => throw new NotSupportedException("Типът турнир не се поддържа.")
             };
-
+            //**
             return generator.Generate(teams, tournament);
         }
 
