@@ -4,6 +4,7 @@
     using System;
     using Tournament.Models;
     using Tournament.Data.Models;
+    using Tournament.Data;
 
     public class MatchSchedulerService : IMatchSchedulerService
     {
@@ -13,7 +14,7 @@
             {
                 TournamentType.RoundRobin => new RoundRobinScheduler(),
                 TournamentType.Knockout => new KnockoutScheduler(),
-                TournamentType.DoubleElimination => new DoubleEliminationScheduler(),
+                TournamentType.DoubleElimination =>new DoubleEliminationScheduler(),
                 TournamentType.GroupAndKnockout => new GroupAndKnockoutScheduler(),
                 TournamentType.Swiss => new SwissScheduler(),
                 _ => throw new NotSupportedException("Типът турнир не се поддържа.")

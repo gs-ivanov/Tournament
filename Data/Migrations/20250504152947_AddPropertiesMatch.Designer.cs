@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tournament.Data;
 
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TurnirDbContext))]
-    partial class TurnirDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250504152947_AddPropertiesMatch")]
+    partial class AddPropertiesMatch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -249,15 +251,6 @@ namespace Tournament.Data.Migrations
                     b.Property<bool>("IsPostponed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("MatchId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("PlayedOn")
                         .HasColumnType("datetime2");
 
@@ -287,7 +280,9 @@ namespace Tournament.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MatchId");
+                    b.HasIndex("SourceMatchAId");
+
+                    b.HasIndex("SourceMatchBId");
 
                     b.HasIndex("TeamAId");
 
@@ -554,9 +549,13 @@ namespace Tournament.Data.Migrations
 
             modelBuilder.Entity("Tournament.Data.Models.Match", b =>
                 {
-                    b.HasOne("Tournament.Data.Models.Match", null)
-                        .WithMany("Matches")
-                        .HasForeignKey("MatchId");
+                    b.HasOne("Tournament.Data.Models.Match", "SourceMatchA")
+                        .WithMany()
+                        .HasForeignKey("SourceMatchAId");
+
+                    b.HasOne("Tournament.Data.Models.Match", "SourceMatchB")
+                        .WithMany()
+                        .HasForeignKey("SourceMatchBId");
 
                     b.HasOne("Tournament.Data.Models.Team", "TeamA")
                         .WithMany("MatchesAsTeamA")
@@ -575,6 +574,10 @@ namespace Tournament.Data.Migrations
                         .HasForeignKey("TournamentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("SourceMatchA");
+
+                    b.Navigation("SourceMatchB");
 
                     b.Navigation("TeamA");
 
@@ -596,11 +599,6 @@ namespace Tournament.Data.Migrations
                     b.Navigation("Tournament");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Tournament.Data.Models.Match", b =>
-                {
-                    b.Navigation("Matches");
                 });
 
             modelBuilder.Entity("Tournament.Data.Models.Team", b =>

@@ -71,6 +71,8 @@ namespace Tournament
             //services
             //    .AddTransient<IRankingService, RankingService>();
             services
+                .AddTransient<IMatchGenerator,DoubleEliminationScheduler>();
+            services
                 .AddTransient<IMatchGenerator, KnockoutScheduler>();
             services
                 .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
