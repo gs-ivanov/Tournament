@@ -1,4 +1,4 @@
-﻿namespace Tournament.Data
+﻿namespace Tournament
 {
     using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@
         public DbSet<Match> Matches { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
         public DbSet<ManagerRequest> ManagerRequests { get; set; }
-        public DbSet<MatchSubscription> MatchSubscriptions { get; set; }
+        //public DbSet<MatchSubscription> MatchSubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

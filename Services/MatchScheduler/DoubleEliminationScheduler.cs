@@ -1,57 +1,142 @@
 ﻿namespace Tournament.Services.MatchScheduler
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
+    using System;
+    using Tournament.Data;
     using Tournament.Data.Models;
+    using System.Linq;
 
-    public class DoubleEliminationScheduler : IMatchGenerator
+    internal class DoubleEliminationScheduler : IMatchGeneratorDbl
     {
-        public List<Match> Generate(List<Team> teams, Tournament tournament)
+        private readonly TurnirDbContext _context;
+
+        public DoubleEliminationScheduler(TurnirDbContext context)
         {
-            if (!IsPowerOfTwo(teams.Count))
-                throw new InvalidOperationException("Double Elimination форматът изисква брой отбори, който е степен на 2 (напр. 4, 8, 16).");
-
-            var matches = new List<Match>();
-            var shuffled = teams.OrderBy(t => Guid.NewGuid()).ToList();
-            DateTime roundDate = tournament.StartDate;
-
-            // Първи кръг – Upper bracket
-            for (int i = 0; i < shuffled.Count; i += 2)
-            {
-                matches.Add(new Match
-                {
-                    TeamAId = shuffled[i].Id,
-                    TeamBId = shuffled[i + 1].Id,
-                    TournamentId = tournament.Id,
-                    PlayedOn = roundDate,
-                    //Bracket = "Winners" // Указваме, че това е Winners Bracket
-                });
-            }
-
-            // Загубилите от този кръг ще участват във втори кръг на Losers Bracket
-            // но той се генерира чак след въвеждане на резултати, така че тук не го добавяме
-
-            return matches;
+            _context =context;
         }
 
-        private bool IsPowerOfTwo(int number)
+        public List<Round> GenerateRounds(TurnirDbContext dbContext, List<Data.Models.Team> teams, Tournament tournament)
         {
-            return number > 1 && (number & (number - 1)) == 0;
+            // Remove any existing matches for this tournament
+            _context.Matches.RemoveRange(_context.Matches.Where(m => m.TournamentId == tournament.Id));
+            _context.SaveChanges();
+
+            if (teams == null || teams.Count < 2)
+                throw new ArgumentException("At least two teams are required.");
+
+            // Random seeding
+            var rnd = new Random();
+            teams = teams.OrderBy(t => rnd.Next()).ToList();
+
+            // Pad to next power of two
+            int size = 1;
+            while (size < teams.Count) size <<= 1;
+            for (int i = teams.Count; i < size; i++)
+                teams.Add(null);  // bye
+
+            var rounds = new List<Round>();
+            var winnersQueue = new Queue<Data.Models.Team>(teams);
+            int totalWBRounds = (int)Math.Log(size, 2);
+            var losersQueue = new Queue<Data.Models.Team>();
+
+            // Winners bracket
+            for (int r = 1; r <= totalWBRounds; r++)
+            {
+                var round = new Round
+                {
+                    Number = r,
+                    Bracket = BracketType.Winners,
+                    Name = r == totalWBRounds ? "Winners Final" : $"Winners Round {r}"
+                };
+
+                var nextWinners = new List<Team>();
+                while (winnersQueue.Count >= 2)
+                {
+                    var a = winnersQueue.Dequeue();
+                    var b = winnersQueue.Dequeue();
+                    var match = new Match
+                    {
+                        TournamentId = tournament.Id,
+                        TeamAId = (int)a?.Id,
+                        TeamBId = (int)b?.Id,
+                        Round = r,
+                        Bracket = BracketType.Winners,
+                        PlayedOn = tournament.StartDate.AddDays((r - 1) * 2)
+                    };
+                    _context.Matches.Add(match);
+                    _context.SaveChanges();
+
+                    nextWinners.Add(match.WinnerTeam);
+                    if (match.LoserTeam != null)
+                        losersQueue.Enqueue(match.LoserTeam);
+
+                    round.Matches.Add(match);
+                }
+
+                winnersQueue = new Queue<Team>(nextWinners);
+                rounds.Add(round);
+            }
+
+            // Losers bracket
+            for (int r = 1; r <= totalWBRounds && losersQueue.Count > 1; r++)
+            {
+                var round = new Round
+                {
+                    Number = totalWBRounds + r,
+                    Bracket = BracketType.Losers,
+                    Name = r == totalWBRounds ? "Losers Final" : $"Losers Round {r}"
+                };
+
+                var nextLosers = new List<Team>();
+                while (losersQueue.Count >= 2)
+                {
+                    var a = losersQueue.Dequeue();
+                    var b = losersQueue.Dequeue();
+                    var match = new Match
+                    {
+                        TournamentId = tournament.Id,
+                        TeamAId = a.Id,
+                        TeamBId = b.Id,
+                        Round = round.Number,
+                        Bracket = BracketType.Losers,
+                        PlayedOn = tournament.StartDate.AddDays((round.Number - 1) * 2)
+                    };
+                    _context.Matches.Add(match);
+                    _context.SaveChanges();
+
+                    nextLosers.Add(match.WinnerTeam);
+                    round.Matches.Add(match);
+                }
+
+                losersQueue = new Queue<Team>(nextLosers);
+                rounds.Add(round);
+            }
+
+            // Championship
+            var champRound = new Round
+            {
+                Number = rounds.Max(r => r.Number) + 1,
+                Bracket = BracketType.Championship,
+                Name = "Championship"
+            };
+            var wf = rounds.First(r => r.Bracket == BracketType.Winners && r.Name.Contains("Final")).Matches.First();
+            var lf = rounds.First(r => r.Bracket == BracketType.Losers && r.Name.Contains("Final")).Matches.First();
+            var finalMatch = new Match
+            {
+                TournamentId = tournament.Id,
+                SourceMatchAId = wf.Id,
+                SourceMatchBId = lf.Id,
+                Round = champRound.Number,
+                Bracket = BracketType.Championship,
+                PlayedOn = tournament.StartDate.AddDays(totalWBRounds * 3)
+            };
+            _context.Matches.Add(finalMatch);
+            _context.SaveChanges();
+
+            champRound.Matches.Add(finalMatch);
+            rounds.Add(champRound);
+
+            return rounds;
         }
     }
 }
-    //public class DoubleEliminationScheduler : IMatchGenerator
-    //{
-
-//    public List<Match> Generate(List<Team> teams, Tournament tournament)
-//    {
-//        var matches = new List<Match>();
-
-
-//        // Финал (ще се добави ръчно след резултатите от полуфиналите)
-//        return matches;
-//    }
-//}
-//}
-

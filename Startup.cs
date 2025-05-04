@@ -73,6 +73,8 @@ namespace Tournament
             services
                 .AddTransient<IMatchGenerator, KnockoutScheduler>();
             services
+                .AddTransient<IMatchGeneratorDbl,DoubleEliminationScheduler>();
+            services
                 .AddTransient<IMatchSchedulerService, MatchSchedulerService>();
 			services
                 .AddTransient<IEmailSender, EmailSender>();
