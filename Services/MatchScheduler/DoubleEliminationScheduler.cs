@@ -31,11 +31,11 @@
 
     public class DoubleEliminationScheduler : IMatchGenerator
     {
-                private readonly TurnirDbContext _db;
+                private readonly TurnirDbContext _context;
 
         public DoubleEliminationScheduler(TurnirDbContext dbContext)
         {
-            _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            this._context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
 
@@ -83,8 +83,8 @@
                         Bracket = BracketType.Winners,
                         PlayedOn = tournament.StartDate.AddDays((r - 1) * 2)
                     };
-                    //_context.Matches.Add(match);
-                    //_context.SaveChanges();
+                    _context.Matches.Add(match);
+                    _context.SaveChanges();
 
                     nextWinners.Add(match.WinnerTeam);
                     if (match.LoserTeam != null)
@@ -121,8 +121,8 @@
                         Bracket = BracketType.Losers,
                         PlayedOn = tournament.StartDate.AddDays((round.Number - 1) * 2)
                     };
-                    //_context.Matches.Add(match);
-                    //_context.SaveChanges();
+                    _context.Matches.Add(match);
+                    _context.SaveChanges();
 
                     nextLosers.Add(match.WinnerTeam);
                     round.Matches.Add(match);
@@ -150,14 +150,13 @@
                 Bracket = BracketType.Championship,
                 PlayedOn = tournament.StartDate.AddDays(totalWBRounds * 3)
             };
-            //_context.Matches.Add(finalMatch);
-            //_context.SaveChanges();
+            _context.Matches.Add(finalMatch);
+            _context.SaveChanges();
 
             champRound.Matches.Add(finalMatch);
             rounds.Add(champRound);
 
-            //return rounds;
-            return null;
+            return rounds;
         }
 
         private bool IsPowerOfTwo(int number)
