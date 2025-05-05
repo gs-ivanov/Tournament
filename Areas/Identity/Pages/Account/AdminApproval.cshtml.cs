@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Tournament.Data; // или TurnirDbContext
+using Tournament.Data;
 using Tournament.Models; // за ManagerRequest, TournamentType, User
 
 
